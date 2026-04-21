@@ -3,192 +3,1408 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>בשערת — הרשמה</title>
+<title>בשערת — Bashert Prototype</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@300;400;500;600;700;800;900&family=Noto+Serif+Hebrew:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
+<style>
+html,body{height:100%;overflow:hidden;margin:0;}
+.shell{display:flex;height:100vh;background:#E8E4DE;align-items:center;justify-content:center;}
+.app-col{width:390px;height:100vh;position:relative;background:var(--bg);box-shadow:0 0 40px rgba(0,0,0,.18);z-index:2;overflow:hidden;flex-shrink:0;}
+.proto{display:none!important;}
+.bot{display:none!important;}
+#lang-switcher{position:absolute!important;top:10px;left:10px;right:auto!important;z-index:200;}
+.screen .pg{padding-bottom:64px!important;}
+.screen-footer{position:absolute;bottom:0;left:0;right:0;z-index:100;background:rgba(247,245,242,.96);backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,.07);padding:10px 20px 12px;display:flex;align-items:center;justify-content:space-between;}
+.screen-footer-label{font-size:10px;color:#C5BFB8;letter-spacing:.1em;text-transform:uppercase;flex:1;text-align:center;direction:ltr;}
+.sf-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,0,0,.1);background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#6B6560;transition:all .15s;flex-shrink:0;line-height:1;}
+.sf-btn:hover{background:#3D5CE6;color:white;border-color:#3D5CE6;}
+.sf-btn.disabled{opacity:.25;pointer-events:none;}
+
+/* ━━━ DEV NOTES PANEL ━━━ */
+#dev-toggle{
+  position:fixed;top:50%;right:0;transform:translateY(-50%);
+  z-index:9000;
+  background:#1A1814;color:#9E9790;
+  border:none;border-radius:8px 0 0 8px;
+  padding:10px 7px;
+  font-size:10px;font-weight:700;letter-spacing:.12em;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  cursor:pointer;transition:all .2s;
+  font-family:'Noto Sans Hebrew',sans-serif;
+}
+#dev-toggle:hover{background:#3D5CE6;color:white;}
+#dev-toggle.open{background:#3D5CE6;color:white;right:300px;}
+
+#dev-panel{
+  position:fixed;top:0;right:-300px;width:300px;height:100vh;
+  z-index:8999;
+  background:#1A1814;
+  border-left:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;
+  transition:right .3s cubic-bezier(.22,1,.36,1);
+  overflow:hidden;
+}
+#dev-panel.open{right:0;}
+
+.dev-header{
+  padding:20px 18px 14px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  flex-shrink:0;
+}
+.dev-app-name{
+  font-family:'Noto Serif Hebrew',serif;font-size:16px;font-weight:700;
+  color:rgba(255,255,255,.9);letter-spacing:-.01em;margin-bottom:2px;
+}
+.dev-sub{font-size:10px;color:#6B6560;letter-spacing:.1em;text-transform:uppercase;}
+
+.dev-screen-info{
+  padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;
+}
+.dev-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(61,92,230,.15);border:1px solid rgba(61,92,230,.3);
+  border-radius:20px;padding:3px 10px;font-size:10px;color:#5B78F0;
+  margin-bottom:10px;letter-spacing:.04em;
+}
+.dev-screen-title{
+  font-family:'Noto Serif Hebrew',serif;font-size:14px;font-weight:700;
+  color:rgba(255,255,255,.85);direction:rtl;text-align:right;line-height:1.4;
+  margin-bottom:8px;
+}
+.dev-notes{
+  font-size:12px;color:#6B6560;line-height:1.7;
+}
+
+.dev-divider{height:1px;background:rgba(255,255,255,.06);margin:0 18px;}
+
+.dev-progress{
+  flex:1;overflow-y:auto;padding:10px 12px;
+}
+.dev-progress::-webkit-scrollbar{width:3px;}
+.dev-progress::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+
+.sp-item{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background .12s;}
+.sp-item:hover{background:rgba(255,255,255,.05);}
+.sp-item.active{background:rgba(61,92,230,.15);}
+.sp-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15);flex-shrink:0;transition:background .12s;}
+.sp-item.active .sp-dot{background:#5B78F0;}
+.sp-item.done .sp-dot{background:#1A8A52;}
+.sp-label{font-size:11px;color:rgba(255,255,255,.3);direction:rtl;transition:color .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp-item.active .sp-label{color:#5B78F0;font-weight:600;}
+.sp-item.done .sp-label{color:rgba(26,138,82,.8);}
+
+@media(max-width:700px){
+  .app-col{width:100%;box-shadow:none;}
+  #dev-toggle{display:none;}
+  #dev-panel{display:none;}
+}
+</style>
 </head>
 <body>
+<!-- DEV NOTES TOGGLE -->
+<button id="dev-toggle" onclick="toggleDev()">DEV NOTES</button>
 
-<!-- Language switcher -->
-<div id="lang-switcher" style="position:fixed;top:8px;right:10px;z-index:10000;display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--line2);border-radius:20px;padding:3px 8px;box-shadow:0 2px 8px rgba(0,0,0,.08);">
-  <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
-  <span style="color:var(--line2);font-size:10px;">|</span>
-  <button class="lang-btn" id="lang-he" onclick="setLang('he')" style="font-weight:700;color:var(--accent);">עב</button>
-  <span style="color:var(--line2);font-size:10px;">|</span>
-  <button class="lang-btn" id="lang-ru" onclick="setLang('ru')">РУ</button>
+<!-- DEV NOTES PANEL -->
+<div id="dev-panel">
+  <div class="dev-header">
+    <div class="dev-app-name">בשערת · Bashert</div>
+    <div class="dev-sub">Dev Notes · Prototype v0.1</div>
+  </div>
+  <div class="dev-screen-info">
+    <div class="dev-badge">Screen <span id="sb-num">1</span> / 25</div>
+    <div class="dev-screen-title" id="sb-title">חשבון — Account</div>
+    <div class="dev-notes" id="sb-notes">Three registration paths: self, matchmaker, or family/friend.</div>
+  </div>
+  <div class="dev-divider"></div>
+  <div class="dev-progress" id="sb-progress"></div>
 </div>
 
-<!-- Proto nav bar -->
-<div class="proto">
-  <span class="plbl">Bashert</span><div class="pdiv"></div>
-  <button class="pb on" id="pb1"  onclick="go(1)">1·חשבון</button>
-  <button class="pb"    id="pb2"  onclick="go(2)">2·אימייל</button>
-  <button class="pb"    id="pb3"  onclick="go(3)">3·תמונה</button>
-  <button class="pb"    id="pb4"  onclick="go(4)">4·דליים</button>
-  <button class="pb"    id="pb5"  onclick="go(5)">5·גיל</button>
-  <button class="pb"    id="pb6"  onclick="go(6)">6·מיקום</button>
-  <button class="pb"    id="pb7"  onclick="go(7)">7·משפחתי</button>
-  <button class="pb"    id="pb8"  onclick="go(8)">8·ילדים</button>
-  <button class="pb"    id="pb9"  onclick="go(9)">9·קהילה</button>
-  <button class="pb"    id="pb10" onclick="go(10)">10·שפה</button>
-  <button class="pb"    id="pb11" onclick="go(11)">11·שבת</button>
-  <button class="pb"    id="pb12" onclick="go(12)">12·כשרות</button>
-  <button class="pb"    id="pb13" onclick="go(13)">13·exactly</button>
-  <button class="pb"    id="pb14" onclick="go(14)">14·מדיה</button>
-  <button class="pb"    id="pb15" onclick="go(15)">15·תורה</button>
-  <button class="pb"    id="pb16" onclick="go(16)">16·השתייכות</button>
-  <div class="pdiv"></div>
-  <button class="pb"    id="pb17" onclick="go(17)">17·הושלם!</button>
-  <button class="pb"    id="pb18" onclick="go(18)">18·השכלה</button>
-  <button class="pb"    id="pb19" onclick="go(19)">19·אישיות</button>
-  <button class="pb"    id="pb20" onclick="go(20)">20·מחפש/ת</button>
-  <button class="pb"    id="pb21" onclick="go(21)">21·פרטים</button>
-  <div class="pdiv"></div>
-  <button class="pb"    id="pb22" onclick="go(22)">22·ממליצים</button>
-  <button class="pb"    id="pb23" onclick="go(23)">23·סיום</button>
-  <div class="pdiv"></div>
-  <button class="pb"    id="pb24" onclick="go(24)">24·גלישה</button>
-  <button class="pb"    id="pb25" onclick="go(25)">25·הפרופילים שלי</button>
-</div>
+<div class="shell">
+  <div class="app-col">
+    <div id="lang-switcher" style="position:absolute;top:10px;left:10px;z-index:200;display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--line2);border-radius:20px;padding:3px 8px;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+      <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+      <span style="color:var(--line2);font-size:10px;">|</span>
+      <button class="lang-btn" id="lang-he" onclick="setLang('he')" style="font-weight:700;color:var(--accent);">עב</button>
+      <span style="color:var(--line2);font-size:10px;">|</span>
+      <button class="lang-btn" id="lang-ru" onclick="setLang('ru')">РУ</button>
+    </div>
+<!-- ═══ SCREEN 01 ═══ -->
+<div class="screen on" id="screen1">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">01 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:4.5%"></div></div>
 
-<!-- Screen mount point — screens are loaded here dynamically -->
-<div id="screen-mount"></div>
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">Welcome</div>
+      <div class="ph-t">Let's get started</div>
+      <div class="ph-s">Bashert is a marriage-focused platform for the Jewish community. Every profile is reviewed before going live.</div>
+      <div style="margin-top:14px;padding:10px 14px;background:var(--bg3);border-radius:var(--r);text-align:center;font-size:13px;color:var(--t2);">
+        כבר יש לך חשבון? <a href="#" style="color:var(--accent);font-weight:600;">התחבר/י ←</a>
+      </div>
+    </div>
+
+    <!-- Step A: Who is registering? -->
+    <div class="card" id="reg-step-a">
+      <div class="ct" style="margin-bottom:14px;"><span class="ctd" style="background:var(--accent);"></span>ההרשמה היא עבור:</div>
+      <div class="gcards">
+        <div class="gcard mc" id="reg-self" onclick="pickRegType('self')">
+          <div class="gc-ck">✓</div>
+          <div class="gc-em">🙋</div>
+          <div class="gc-t">בשבילי</div>
+          <div class="gc-s">אני רווק/ה ומחפש/ת זיווג</div>
+        </div>
+        <div class="gcard wc" id="reg-other" onclick="pickRegType('other')">
+          <div class="gc-ck">✓</div>
+          <div class="gc-em">🤝</div>
+          <div class="gc-t">בשביל מישהו אחר</div>
+          <div class="gc-s">אני עוזר/ת למישהו ליצור פרופיל</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step B-self: Gender -->
+    <div class="card" id="reg-gender-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--accent);"></span>אני…</div>
+      <div class="gcards">
+        <div class="gcard mc" id="gc-man" onclick="selG('man')"><div class="gc-ck">✓</div><div class="gc-em">👨</div><div class="gc-t">גבר</div><div class="gc-s">מחפש אישה</div></div>
+        <div class="gcard wc" id="gc-woman" onclick="selG('woman')"><div class="gc-ck">✓</div><div class="gc-em">👩</div><div class="gc-t">אישה</div><div class="gc-s">מחפשת גבר</div></div>
+      </div>
+    </div>
+
+    <!-- Step B-other: Role -->
+    <div class="card" id="reg-role-card" style="display:none;">
+      <div class="ct" style="margin-bottom:14px;"><span class="ctd" style="background:var(--gold);"></span>מה הקשר שלך לרווק/ה?</div>
+      <div class="gcards">
+        <div class="gcard mc" id="role-matchmaker" onclick="pickRole('matchmaker')">
+          <div class="gc-ck">✓</div><div class="gc-em">💼</div>
+          <div class="gc-t">אני שדכן/ית</div>
+          <div class="gc-s">מקצועי/ת רשום/ה בבשערת</div>
+        </div>
+        <div class="gcard wc" id="role-family" onclick="pickRole('family')">
+          <div class="gc-ck">✓</div><div class="gc-em">👨‍👩‍👦</div>
+          <div class="gc-t">משפחה או חבר/ה</div>
+          <div class="gc-s">אני עוזר/ת למישהו שאני מכיר/ה</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step C1: Single's gender (for someone else) -->
+    <div class="card" id="reg-single-gender-card" style="display:none;">
+      <div class="ct" style="margin-bottom:14px;"><span class="ctd" style="background:var(--gold);"></span>הרווק/ה הוא/היא:</div>
+      <div class="gcards">
+        <div class="gcard mc" id="gc-single-man" onclick="selSingleG('man')"><div class="gc-ck">✓</div><div class="gc-em">👨</div><div class="gc-t">גבר</div><div class="gc-s">מחפש אישה</div></div>
+        <div class="gcard wc" id="gc-single-woman" onclick="selSingleG('woman')"><div class="gc-ck">✓</div><div class="gc-em">👩</div><div class="gc-t">אישה</div><div class="gc-s">מחפשת גבר</div></div>
+      </div>
+    </div>
+
+    <!-- Step C2: Single's details -->
+    <div class="card" id="reg-single-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--gold);"></span><span id="single-details-label">Their details</span></div>
+      <div class="notice nb" style="margin-bottom:12px;">ניצור איתם קשר לאימות החשבון ולמילוי הפרופיל.</div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">שם פרטי <em>*</em></label><input class="fi" id="inp-single-fname" placeholder="שם פרטי"></div>
+        <div class="fg"><label class="lbl">שם משפחה <em>*</em></label><input class="fi" placeholder="שם משפחה"></div>
+      </div>
+      <div class="fg"><label class="lbl">כתובת אימייל <em>*</em></label><input class="fi" type="email" placeholder="כתובת האימייל שלהם — לאימות"></div>
+      <div class="fg"><label class="lbl">טלפון (אופציונלי)</label><input class="fi" type="tel" placeholder="לתזכורת WhatsApp"></div>
+    </div>
+
+    <!-- Step D: Your name -->
+    <div class="card" id="reg-name-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--gold);"></span>השם שלך</div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">שם פרטי <em>*</em></label><input class="fi" placeholder="שם פרטי"></div>
+        <div class="fg"><label class="lbl">שם משפחה <em>*</em></label><input class="fi" placeholder="פרטי — לשדכן/ית בלבד"><div class="hint">רק השדכן/ית שלך רואה זאת.</div></div>
+      </div>
+      <div class="fg"><label class="lbl">שם תצוגה <em>*</em></label><input class="fi" placeholder="לדוגמה: דוד מ."><div class="hint">מוצג בכרטיס הפרופיל שלך — שם פרטי + ראשית משפחה הוא הסטנדרט.</div></div>
+    </div>
+
+    <!-- Step E: Login credentials -->
+    <div class="card" id="reg-login-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--rose);"></span>יצירת חשבון</div>
+      <div class="fg"><label class="lbl">כתובת האימייל שלי <em>*</em></label><input class="fi" type="email" placeholder="כתובת האימייל שלך"></div>
+      <div class="fg"><label class="lbl">הסיסמה שלי <em>*</em></label><input class="fi" type="password" placeholder="בחר/י סיסמה">
+        <div class="pw-bar"><div class="pw-seg on"></div><div class="pw-seg on"></div><div class="pw-seg on"></div><div class="pw-seg"></div><span class="pw-lbl">טוב</span></div>
+      </div>
+      <div class="fg"><label class="lbl">אימות סיסמה <em>*</em></label><input class="fi" type="password" placeholder="חזור/י על הסיסמה"></div>
+    </div>
+
+    <!-- Agreements + Continue -->
+    <div class="card" id="reg-agree-card" style="display:none;">
+      <label class="chk" onclick="tChk(this)"><div class="chkb on">✓</div><div class="chk-l">אני מסכים/ה ל<a href="#">תנאי השימוש</a> ול<a href="#">מדיניות הפרטיות</a>. אני מבין/ה שבשערת מיועדת לנישואין.</div></label>
+      <label class="chk" onclick="tChk(this)"><div class="chkb"></div><div class="chk-l" id="jewish-confirm-lbl">אני מאשר/ת שאני יהודי/ה או נמצא/ת בתהליך גיור מוכר.</div></label>
+      <button class="btn btn-p btn-f" style="margin-top:10px;" onclick="go(2)">המשך ←</button>
+    </div>
+
+  </div></div>
+</div>
 
 <script>
-/* ═══════════════════════════════════
-   SCREEN ROUTER
-   Each screen lives in its own file: screens/screen-01.html etc.
-   go(n) fetches the file, injects it, runs its init function.
-═══════════════════════════════════ */
+function initScreen1() {
+  // Reset state
+  ['reg-gender-card','reg-role-card','reg-single-gender-card','reg-single-card','reg-name-card','reg-login-card','reg-agree-card']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+}
 
-let _currentScreen = 0;
-let _lang = 'he';
-const _screenCache = {};
+function pickRegType(type) {
+  const self = document.getElementById('reg-self');
+  const other = document.getElementById('reg-other');
+  if (type === 'self') {
+    self.classList.add('sm'); other.classList.remove('sw');
+    show('reg-gender-card'); hide('reg-role-card'); hide('reg-single-gender-card'); hide('reg-single-card');
+  } else {
+    other.classList.add('sw'); self.classList.remove('sm');
+    show('reg-role-card'); hide('reg-gender-card'); hide('reg-name-card'); hide('reg-login-card'); hide('reg-agree-card');
+  }
+}
 
-async function go(n) {
-  const padded = String(n).padStart(2, '0');
-  const file = `screens/screen-${padded}.html`;
+function pickRole(role) {
+  document.getElementById('role-matchmaker').classList.toggle('sm', role==='matchmaker');
+  document.getElementById('role-family').classList.toggle('sw', role==='family');
+  show('reg-single-gender-card');
+}
 
-  // Update proto bar
-  document.querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
-  const pb = document.getElementById(`pb${n}`);
-  if (pb) pb.classList.add('on');
+function selG(g) {
+  document.getElementById('gc-man').classList.toggle('sm', g==='man');
+  document.getElementById('gc-woman').classList.toggle('sw', g==='woman');
+  show('reg-name-card'); show('reg-login-card'); show('reg-agree-card');
+}
 
-  // Fetch & cache
-  if (!_screenCache[n]) {
-    try {
-      const res = await fetch(file);
-      if (!res.ok) throw new Error(`Screen ${n} not found`);
-      _screenCache[n] = await res.text();
-    } catch(e) {
-      console.warn(e);
-      _screenCache[n] = `<div class="screen on" id="screen${n}">
-        <div class="tb"><div class="logo">בשערת</div><div class="tsp"></div><span class="sbadge">${padded} / 25</span></div>
-        <div class="pg"><div class="pgc" style="padding-top:60px;text-align:center;color:var(--t3);">
-          <div style="font-size:48px;margin-bottom:16px;">🚧</div>
-          <div style="font-family:'Noto Serif Hebrew',serif;font-size:20px;color:var(--t1);margin-bottom:8px;">מסך ${n}</div>
-          <div style="font-size:13px;">עמוד זה עדיין בבנייה</div>
-        </div></div>
-      </div>`;
+function selSingleG(g) {
+  document.getElementById('gc-single-man').classList.toggle('sm', g==='man');
+  document.getElementById('gc-single-woman').classList.toggle('sw', g==='woman');
+  show('reg-single-card'); show('reg-login-card'); show('reg-agree-card');
+}
+
+function show(id) { const el=document.getElementById(id); if(el) el.style.display=''; }
+function hide(id) { const el=document.getElementById(id); if(el) el.style.display='none'; }
+</script>
+
+<!-- ═══ SCREEN 02 ═══ -->
+<div class="screen on" id="screen2">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">02 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:9%"></div></div>
+
+  <div class="pg" style="display:flex;align-items:center;">
+    <div class="pgc" style="width:100%;max-width:420px;margin:0 auto;text-align:center;">
+
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--abg);border:1px solid var(--abd);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;">✉️</div>
+
+      <div class="ph-t" style="margin-bottom:8px;">בדוק/י את תיבת הדואר</div>
+      <div class="ph-s" style="margin-bottom:12px;">שלחנו קוד בן 6 ספרות ל</div>
+
+      <div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;background:var(--surface);border:1px solid var(--line2);padding:6px 14px;border-radius:8px;font-size:13px;color:var(--accent);">
+        your@email.com
+      </div>
+
+      <div class="otp-row">
+        <input class="otp ok" maxlength="1" value="4">
+        <input class="otp ok" maxlength="1" value="8">
+        <input class="otp ok" maxlength="1" value="3">
+        <input class="otp ok" maxlength="1" value="7">
+        <input class="otp" maxlength="1" placeholder="·">
+        <input class="otp" maxlength="1" placeholder="·">
+      </div>
+
+      <button class="btn btn-p btn-f" onclick="go(4)">Verify &amp; המשך ←</button>
+      <button class="btn btn-g btn-f" onclick="go(1)">← שנה/י כתובת</button>
+      <div style="font-size:12px;color:var(--t3);">לא קיבלת? <a href="#" style="color:var(--accent);">שלח/י שוב</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function initScreen2() {
+  // Auto-focus first empty OTP input
+  const inputs = document.querySelectorAll('.otp');
+  inputs.forEach((inp, i) => {
+    inp.addEventListener('input', () => {
+      if (inp.value && inputs[i+1]) inputs[i+1].focus();
+    });
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !inp.value && inputs[i-1]) inputs[i-1].focus();
+    });
+  });
+}
+</script>
+
+<!-- ═══ SCREEN 03 ═══ -->
+<div class="screen on" id="screen3">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">03 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:13%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">הפרופיל שלך</div>
+      <div class="ph-t">הוסף/י תמונות</div>
+      <div class="ph-s">תמונות אמיתיות ועדכניות עוזרות לשדכנים ולמשתמשים להכיר אותך. כל התמונות נסקרות לפני פרסום.</div>
+    </div>
+
+    <!-- Main photo drop zone -->
+    <div class="drop" id="main-drop" onclick="triggerUpload('main-upload')">
+      <div class="drop-ic">📷</div>
+      <div class="drop-t">תמונה ראשית</div>
+      <div class="drop-s">לחץ/י לבחירת תמונה · JPG, PNG · עד 10MB</div>
+      <input type="file" id="main-upload" accept="image/*" style="display:none" onchange="previewPhoto(this,'main-drop')">
+    </div>
+
+    <!-- Additional photos -->
+    <div class="card" style="margin-top:14px;">
+      <div class="ct"><span class="ctd" style="background:var(--accent);"></span>תמונות נוספות (אופציונלי)</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div class="drop" style="padding:20px 10px;" onclick="triggerUpload('photo2')">
+          <div class="drop-ic" style="font-size:24px;">+</div>
+          <div class="drop-s">תמונה 2</div>
+          <input type="file" id="photo2" accept="image/*" style="display:none">
+        </div>
+        <div class="drop" style="padding:20px 10px;" onclick="triggerUpload('photo3')">
+          <div class="drop-ic" style="font-size:24px;">+</div>
+          <div class="drop-s">תמונה 3</div>
+          <input type="file" id="photo3" accept="image/*" style="display:none">
+        </div>
+        <div class="drop" style="padding:20px 10px;" onclick="triggerUpload('photo4')">
+          <div class="drop-ic" style="font-size:24px;">+</div>
+          <div class="drop-s">תמונה 4</div>
+          <input type="file" id="photo4" accept="image/*" style="display:none">
+        </div>
+      </div>
+    </div>
+
+    <div class="notice nb" style="margin-top:14px;">
+      תמונות לא יוצגו בגלישה הכללית — רק לשדכנים ולמשתמשים שאישרת/ה.
+    </div>
+
+  </div></div>
+
+  <div class="bot">
+    <span class="bot-hint">ניתן לדלג ולהוסיף מאוחר יותר</span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(2)">← חזור</button>
+      <button class="btn btn-p" onclick="go(4)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function initScreen3() {}
+
+function triggerUpload(id) {
+  document.getElementById(id).click();
+}
+
+function previewPhoto(input, dropId) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const drop = document.getElementById(dropId);
+    drop.style.backgroundImage = `url(${e.target.result})`;
+    drop.style.backgroundSize = 'cover';
+    drop.style.backgroundPosition = 'center';
+    drop.querySelector('.drop-ic').style.display = 'none';
+    drop.querySelector('.drop-t') && (drop.querySelector('.drop-t').style.display = 'none');
+    drop.querySelector('.drop-s').style.display = 'none';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+</script>
+
+<!-- ═══ SCREEN 04 ═══ -->
+<div class="screen on" id="screen4">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">04 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:17.4%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">לפני שמתחילים</div>
+      <div class="ph-t">הדליים שלך</div>
+      <div class="ph-s">כל תשובה ממוינת לאחד מארבעה דליים — מהאידיאלי ועד לקצה החיצוני של מה שתשקול/י.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 14px;border-radius:var(--r3);border:1.5px solid var(--b1d);background:var(--b1b);">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--b1);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(61,92,230,.3);">
+          <span style="font-family:'Noto Serif Hebrew',serif;font-size:26px;font-weight:900;color:#fff;">1</span>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:13px;font-weight:600;color:var(--b1);margin-bottom:3px;">אידיאלי</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.4;">הקריטריונים האידיאליים שלך</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 14px;border-radius:var(--r3);border:1.5px solid var(--b2d);background:var(--b2b);">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--b2);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(26,138,82,.3);">
+          <span style="font-family:'Noto Serif Hebrew',serif;font-size:26px;font-weight:900;color:#fff;">2</span>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:13px;font-weight:600;color:var(--b2);margin-bottom:3px;">מקובל</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.4;">מחוץ לאידיאל — עדיין מעניין</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 14px;border-radius:var(--r3);border:1.5px solid var(--b3d);background:var(--b3b);">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--b3);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(176,122,32,.3);">
+          <span style="font-family:'Noto Serif Hebrew',serif;font-size:26px;font-weight:900;color:#fff;">3</span>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:13px;font-weight:600;color:var(--b3);margin-bottom:3px;">בסבירות</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.4;">תשקול/י אם ימולץ בחום</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 14px;border-radius:var(--r3);border:1.5px solid var(--b4d);background:var(--b4b);">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--b4);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(201,48,96,.3);">
+          <span style="font-family:'Noto Serif Hebrew',serif;font-size:26px;font-weight:900;color:#fff;">4</span>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:13px;font-weight:600;color:var(--b4);margin-bottom:3px;">לא מתאים</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.4;">לא יוצג בגלישה בכלל</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-p btn-f" onclick="go(5)">נתחיל ←</button>
+
+  </div></div>
+</div>
+
+<script>
+function initScreen4() {}
+</script>
+
+<!-- ═══ SCREEN 05 ═══ -->
+<div class="screen on" id="screen5">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">05 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:21.7%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">העדפות — גיל</div>
+      <div class="ph-t">העדפות גיל</div>
+      <div class="ph-s">הגדר/י את הטווח ביחס לגילך — הטווחים מתעדכנים אוטומטית בכל יום הולדת.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="frow" style="align-items:center;gap:16px;margin:0;">
+        <div class="fg" style="margin:0;">
+          <label class="lbl">תאריך לידה <em>*</em></label>
+          <input class="fi" type="date" id="dob" style="width:190px;" oninput="onDobInput()">
+        </div>
+        <div style="background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;width:78px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,110,247,.35);flex-shrink:0;">
+          <div style="font-family:'Noto Serif Hebrew',serif;font-size:28px;font-weight:800;color:#fff;line-height:1;" id="ageDisp">34</div>
+          <div style="font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.65);">גיל</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUCKET 1 -->
+    <div class="ar ar1">
+      <div class="arh">
+        <div class="bn ar-bn-1"><span class="bn-num">1</span></div>
+        <div style="flex:1;">
+          <div class="bht" style="color:var(--b1);">דלי 1 — אידיאלי</div>
+        </div>
+      </div>
+      <div class="arb">
+        <div class="apick">
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים צעיר/ה יותר</div>
+            <div class="age-spinner">
+              <div class="vud"><button class="vub" onclick="aa('b1y',+1)">▲</button><button class="vub" onclick="aa('b1y',-1)">▼</button></div>
+              <div class="age-num-block"><div class="anum" id="b1y">0</div><div class="amin-age" id="b1y-age">age 34</div></div>
+            </div>
+          </div>
+          <div class="amid"><div class="ayouls">גילך</div><div class="ayou" id="ac1">34</div></div>
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים מבוגר/ת יותר</div>
+            <div class="age-spinner">
+              <div class="age-num-block"><div class="anum" id="b1o">2</div><div class="amin-age" id="b1o-age">age 36</div></div>
+              <div class="vud"><button class="vub" onclick="aa('b1o',+1)">▲</button><button class="vub" onclick="aa('b1o',-1)">▼</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="ares" id="b1r"><span class="ares-ages"></span><span class="ares-yrs"></span></div>
+      </div>
+    </div>
+
+    <!-- BUCKET 2 -->
+    <div class="ar ar2">
+      <div class="arh">
+        <div class="bn ar-bn-2"><span class="bn-num">2</span></div>
+        <div style="flex:1;"><div class="bht" style="color:var(--b2);">דלי 2 — מקובל</div></div>
+      </div>
+      <div class="arb">
+        <div class="apick">
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים צעיר/ה יותר</div>
+            <div class="age-spinner">
+              <div class="vud"><button class="vub" onclick="aa('b2y',+1)">▲</button><button class="vub" onclick="aa('b2y',-1)">▼</button></div>
+              <div class="age-num-block"><div class="anum" id="b2y">2</div><div class="amin-age" id="b2y-age">age 32</div></div>
+            </div>
+          </div>
+          <div class="amid"><div class="ayouls">גילך</div><div class="ayou" id="ac2">34</div></div>
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים מבוגר/ת יותר</div>
+            <div class="age-spinner">
+              <div class="age-num-block"><div class="anum" id="b2o">4</div><div class="amin-age" id="b2o-age">age 38</div></div>
+              <div class="vud"><button class="vub" onclick="aa('b2o',+1)">▲</button><button class="vub" onclick="aa('b2o',-1)">▼</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="ares" id="b2r"><span class="ares-ages">Ages 32–33 and 37–38</span><span class="ares-yrs">3–4 years younger · 3–4 years older</span></div>
+      </div>
+    </div>
+
+    <!-- BUCKET 3 -->
+    <div class="ar ar3">
+      <div class="arh">
+        <div class="bn ar-bn-3"><span class="bn-num">3</span></div>
+        <div style="flex:1;"><div class="bht" style="color:var(--b3);">דלי 3 — בסבירות</div></div>
+      </div>
+      <div class="arb">
+        <div class="apick">
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים צעיר/ה יותר</div>
+            <div class="age-spinner">
+              <div class="vud"><button class="vub" onclick="aa('b3y',+1)">▲</button><button class="vub" onclick="aa('b3y',-1)">▼</button></div>
+              <div class="age-num-block"><div class="anum" id="b3y">4</div><div class="amin-age" id="b3y-age">age 30</div></div>
+            </div>
+          </div>
+          <div class="amid"><div class="ayouls">גילך</div><div class="ayou" id="ac3">34</div></div>
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים מבוגר/ת יותר</div>
+            <div class="age-spinner">
+              <div class="age-num-block"><div class="anum" id="b3o">6</div><div class="amin-age" id="b3o-age">age 40</div></div>
+              <div class="vud"><button class="vub" onclick="aa('b3o',+1)">▲</button><button class="vub" onclick="aa('b3o',-1)">▼</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="ares" id="b3r"><span class="ares-ages">Ages 30–31 and 39–40</span><span class="ares-yrs">Absolute outer range</span></div>
+      </div>
+    </div>
+
+    <!-- BUCKET 4 -->
+    <div class="ar ar4">
+      <div class="arh">
+        <div class="bn ar-bn-4"><span class="bn-num">4</span></div>
+        <div style="flex:1;"><div class="bht" style="color:var(--b4);">דלי 4 — לא מוצג</div></div>
+      </div>
+      <div class="arb">
+        <div class="ares" id="b4r">
+          <span class="ares-ages">Ages 18–29 and ages 41–100</span>
+          <span class="ares-yrs">מחוץ לטווח הבסבירות — לא יוצג</span>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+
+  <div class="bot">
+    <span class="bot-hint">מתעדכן אוטומטית בכל יום הולדת</span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(4)">← חזור</button>
+      <button class="btn btn-p" onclick="go(6)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Age state — local to screen 5
+let _age5 = { myAge: 34, b1y:0, b1o:2, b2y:2, b2o:4, b3y:4, b3o:6 };
+
+function initScreen5() {
+  updateAgeDisplays();
+}
+
+function onDobInput() {
+  const dob = document.getElementById('dob').value;
+  if (!dob) return;
+  const today = new Date();
+  const birth = new Date(dob);
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  _age5.myAge = Math.max(18, Math.min(120, age));
+  document.getElementById('ageDisp').textContent = _age5.myAge;
+  updateAgeDisplays();
+}
+
+function aa(field, delta) {
+  const minMap = { b1y:0, b1o:0, b2y:0, b2o:0, b3y:0, b3o:0 };
+  _age5[field] = Math.max(minMap[field]||0, _age5[field] + delta);
+  // Enforce cascade: b2 must be >= b1, b3 must be >= b2
+  if (field==='b1y' && _age5.b2y < _age5.b1y) _age5.b2y = _age5.b1y;
+  if (field==='b2y' && _age5.b3y < _age5.b2y) _age5.b3y = _age5.b2y;
+  if (field==='b1o' && _age5.b2o < _age5.b1o) _age5.b2o = _age5.b1o;
+  if (field==='b2o' && _age5.b3o < _age5.b2o) _age5.b3o = _age5.b2o;
+  if (field==='b2y' && _age5.b2y < _age5.b1y) _age5.b2y = _age5.b1y;
+  if (field==='b3y' && _age5.b3y < _age5.b2y) _age5.b3y = _age5.b2y;
+  if (field==='b2o' && _age5.b2o < _age5.b1o) _age5.b2o = _age5.b1o;
+  if (field==='b3o' && _age5.b3o < _age5.b2o) _age5.b3o = _age5.b2o;
+  updateAgeDisplays();
+}
+
+function updateAgeDisplays() {
+  const a = _age5.myAge;
+  ['ac1','ac2','ac3'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=a; });
+  const ageDisp = document.getElementById('ageDisp'); if(ageDisp) ageDisp.textContent=a;
+
+  ['b1y','b1o','b2y','b2o','b3y','b3o'].forEach(f => {
+    const el=document.getElementById(f); if(el) el.textContent=_age5[f];
+    const ael=document.getElementById(f+'-age');
+    if(ael) {
+      const adj = f.endsWith('y') ? -_age5[f] : _age5[f];
+      ael.textContent='age '+(a+adj);
     }
-  }
+  });
 
-  // Inject HTML
-  const mount = document.getElementById('screen-mount');
-  mount.innerHTML = _screenCache[n];
+  // Result summaries
+  const b1MinAge = a - _age5.b1y, b1MaxAge = a + _age5.b1o;
+  setAres('b1r', `Ages ${b1MinAge}–${b1MaxAge}`, `${_age5.b1y} years younger · ${_age5.b1o} years older`);
 
-  // Run any init script the screen exports
-  const initFn = window[`initScreen${n}`];
-  if (typeof initFn === 'function') initFn();
+  const b2MinAge = a - _age5.b2y, b2MaxAge = a + _age5.b2o;
+  const b2YoungRange = `${b2MinAge}–${a-_age5.b1y-1}`;
+  const b2OldRange = `${a+_age5.b1o+1}–${b2MaxAge}`;
+  setAres('b2r', `Ages ${b2YoungRange} and ${b2OldRange}`, `${_age5.b2y-_age5.b1y}–${_age5.b2y} years younger · ${_age5.b2o-_age5.b1o}–${_age5.b2o} years older`);
 
-  _currentScreen = n;
+  const b3MinAge = a - _age5.b3y, b3MaxAge = a + _age5.b3o;
+  setAres('b3r', `Ages ${b3MinAge}–${a-_age5.b2y-1} and ${a+_age5.b2o+1}–${b3MaxAge}`, 'Absolute outer range');
+
+  setAres('b4r', `Ages 18–${b3MinAge-1} and ages ${b3MaxAge+1}+`, 'מחוץ לטווח הבסבירות — לא יוצג');
 }
 
-/* ═══════════════════════════════════
-   i18n — MULTI-LANGUAGE SUPPORT
-═══════════════════════════════════ */
-const STRINGS = {
-  en: {
-    appName:'Bashert',next:'המשך ←',back:'← חזור',save:'Save',
-    s1_title:"Let's get started",s1_sub:"Bashert is a marriage-focused platform for the Jewish community.",
-    s1_forSelf:'For Myself',s1_forSelf_sub:'I am a single looking for a match',
-    s1_forOther:'For Someone Else',s1_forOther_sub:'I am helping a single create their profile',
-    s1_matchmaker:'I am a Matchmaker',s1_matchmaker_sub:'Registered professional on Bashert',
-    s1_family:'Family or Friend',s1_family_sub:"I'm helping someone I know",
-    s1_man:'I am a Man',s1_man_sub:'Looking for a woman',
-    s1_woman:'I am a Woman',s1_woman_sub:'Looking for a man',
-    s1_fname:'First name',s1_lname:'Last name',s1_email:'Email address',
-    s1_phone:'Phone (optional)',s1_myEmail:'My email address',
-    s1_myPass:'My password',s1_confirmPass:'Confirm my password',
-    s1_jewish:'I confirm I am Jewish or in a recognised conversion process.',
-    s1_jewish_other_he:'I confirm that he is Jewish or in a recognised conversion process.',
-    s1_jewish_other_she:'I confirm that she is Jewish or in a recognised conversion process.',
-    b1_name:'אידיאלי',b2_name:'טוב',b3_name:'בסבירות',b4_name:'לא',
-  },
-  he: {
-    appName:'בשערת',next:'המשך →',back:'← חזור',save:'שמור',
-    s1_title:'נתחיל',s1_sub:'בשערת היא פלטפורמת שידוכים לקהילה היהודית.',
-    s1_forSelf:'בשבילי',s1_forSelf_sub:'אני רווק/ה ומחפש/ת זיווג',
-    s1_forOther:'בשביל מישהו אחר',s1_forOther_sub:'אני עוזר/ת למישהו ליצור פרופיל',
-    s1_matchmaker:'אני שדכן/ית',s1_matchmaker_sub:'מקצועי/ת רשום/ה בבשערת',
-    s1_family:'משפחה או חבר/ה',s1_family_sub:'אני עוזר/ת למישהו שאני מכיר/ה',
-    s1_man:'אני גבר',s1_man_sub:'מחפש אישה',
-    s1_woman:'אני אישה',s1_woman_sub:'מחפשת גבר',
-    s1_fname:'שם פרטי',s1_lname:'שם משפחה',s1_email:'כתובת אימייל',
-    s1_phone:'טלפון (אופציונלי)',s1_myEmail:'כתובת האימייל שלי',
-    s1_myPass:'הסיסמה שלי',s1_confirmPass:'אימות סיסמה',
-    s1_jewish:'אני מאשר/ת שאני יהודי/ה או נמצא/ת בתהליך גיור מוכר.',
-    s1_jewish_other_he:'אני מאשר/ת שהוא יהודי או נמצא בתהליך גיור מוכר.',
-    s1_jewish_other_she:'אני מאשר/ת שהיא יהודייה או נמצאת בתהליך גיור מוכר.',
-    b1_name:'אידיאלי',b2_name:'טוב',b3_name:'בסבירות',b4_name:'לא',
-  },
-  ru: {
-    appName:'Башерт',next:'Далее →',back:'← Назад',save:'Сохранить',
-    s1_title:'Начнём',s1_sub:'Башерт — платформа для знакомств с целью создания семьи в еврейской общине.',
-    s1_forSelf:'Для себя',s1_forSelf_sub:'Я ищу пару',
-    s1_forOther:'Для другого человека',s1_forOther_sub:'Я помогаю кому-то создать профиль',
-    s1_matchmaker:'Я шадхан/шадхенит',s1_matchmaker_sub:'Зарегистрированный специалист',
-    s1_family:'Родственник или друг',s1_family_sub:'Я помогаю знакомому',
-    s1_man:'Я мужчина',s1_man_sub:'Ищу женщину',
-    s1_woman:'Я женщина',s1_woman_sub:'Ищу мужчину',
-    s1_fname:'Имя',s1_lname:'Фамилия',s1_email:'Электронная почта',
-    s1_phone:'Телефон (необязательно)',s1_myEmail:'Моя электронная почта',
-    s1_myPass:'Мой пароль',s1_confirmPass:'Подтвердите пароль',
-    s1_jewish:'Я подтверждаю, что я еврей/еврейка или прохожу признанный гиюр.',
-    s1_jewish_other_he:'Я подтверждаю, что он еврей или проходит признанный гиюр.',
-    s1_jewish_other_she:'Я подтверждаю, что она еврейка или проходит признанный гиюр.',
-    b1_name:'Идеально',b2_name:'Хорошо',b3_name:'Возможно',b4_name:'Нет',
-  }
-};
+function setAres(id, ages, yrs) {
+  const el=document.getElementById(id); if(!el) return;
+  const a=el.querySelector('.ares-ages'), y=el.querySelector('.ares-yrs');
+  if(a) a.textContent=ages; if(y) y.textContent=yrs;
+}
+</script>
 
-function t(key) { return (STRINGS[_lang] && STRINGS[_lang][key]) || STRINGS['he'][key] || key; }
+<!-- ═══ SCREEN 06 ═══ -->
+<div class="screen on" id="screen6">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">06 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:26.1%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Location</div>
+      <div class="ph-t">מיקום</div>
+      <div class="ph-s">הגדר/י את מיקומך והיכן תשקול/י לגור</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 6 — Location</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(5)">← חזור</button>
+      <button class="btn btn-p" onclick="go(7)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen6() {}
+<\/script>
 
-function setLang(lang) {
-  _lang = lang;
-  document.documentElement.lang = lang === 'he' ? 'he' : 'en';
-  document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
-  document.getElementById('lang-en').style.fontWeight = lang==='en'?'700':'400';
-  document.getElementById('lang-en').style.color = lang==='en'?'var(--accent)':'';
-  document.getElementById('lang-he').style.fontWeight = lang==='he'?'700':'400';
-  document.getElementById('lang-he').style.color = lang==='he'?'var(--accent)':'';
-  document.getElementById('lang-ru').style.fontWeight = lang==='ru'?'700':'400';
-  document.getElementById('lang-ru').style.color = lang==='ru'?'var(--accent)':'';
-  // Invalidate cache so screens re-render with new language
-  Object.keys(_screenCache).forEach(k => delete _screenCache[k]);
-  if (_currentScreen) go(_currentScreen);
+<!-- ═══ SCREEN 07 ═══ -->
+<div class="screen on" id="screen7">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">07 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:30.4%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Family Status</div>
+      <div class="ph-t">משפחתי</div>
+      <div class="ph-s">מה המצב המשפחתי שלך?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 7 — Family Status</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(6)">← חזור</button>
+      <button class="btn btn-p" onclick="go(8)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen7() {}
+<\/script>
+
+<!-- ═══ SCREEN 08 ═══ -->
+<div class="screen on" id="screen8">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">08 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:34.8%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Children</div>
+      <div class="ph-t">ילדים</div>
+      <div class="ph-s">האם יש לך ילדים? האם את/ה מעוניין/ת בילדים?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 8 — Children</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(7)">← חזור</button>
+      <button class="btn btn-p" onclick="go(9)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen8() {}
+<\/script>
+
+<!-- ═══ SCREEN 09 ═══ -->
+<div class="screen on" id="screen9">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">09 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:39.1%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Community</div>
+      <div class="ph-t">קהילה</div>
+      <div class="ph-s">לאיזו קהילה יהודית את/ה שייך/ת?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 9 — Community</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(8)">← חזור</button>
+      <button class="btn btn-p" onclick="go(10)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen9() {}
+<\/script>
+
+<!-- ═══ SCREEN 10 ═══ -->
+<div class="screen on" id="screen10">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">10 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:43.5%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Language</div>
+      <div class="ph-t">שפה</div>
+      <div class="ph-s">אילו שפות את/ה מדבר/ת?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 10 — Language</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(9)">← חזור</button>
+      <button class="btn btn-p" onclick="go(11)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen10() {}
+<\/script>
+
+<!-- ═══ SCREEN 11 ═══ -->
+<div class="screen on" id="screen11">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">11 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:47.8%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Shabbat</div>
+      <div class="ph-t">שבת</div>
+      <div class="ph-s">כיצד את/ה שומר/ת שבת?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 11 — Shabbat</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(10)">← חזור</button>
+      <button class="btn btn-p" onclick="go(12)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen11() {}
+<\/script>
+
+<!-- ═══ SCREEN 12 ═══ -->
+<div class="screen on" id="screen12">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">12 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:52.2%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Kashrut</div>
+      <div class="ph-t">כשרות</div>
+      <div class="ph-s">כיצד את/ה שומר/ת כשרות?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 12 — Kashrut</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(11)">← חזור</button>
+      <button class="btn btn-p" onclick="go(13)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen12() {}
+<\/script>
+
+<!-- ═══ SCREEN 13 ═══ -->
+<div class="screen on" id="screen13">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">13 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:56.5%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Exactly — Hard Lines</div>
+      <div class="ph-t">exactly</div>
+      <div class="ph-s">יש קווים אדומים שאי אפשר לחצות?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 13 — Exactly — Hard Lines</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(12)">← חזור</button>
+      <button class="btn btn-p" onclick="go(14)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen13() {}
+<\/script>
+
+<!-- ═══ SCREEN 14 ═══ -->
+<div class="screen on" id="screen14">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">14 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:60.9%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Media and Lifestyle</div>
+      <div class="ph-t">מדיה</div>
+      <div class="ph-s">כיצד את/ה משתמש/ת במדיה?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 14 — Media and Lifestyle</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(13)">← חזור</button>
+      <button class="btn btn-p" onclick="go(15)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen14() {}
+<\/script>
+
+<!-- ═══ SCREEN 15 ═══ -->
+<div class="screen on" id="screen15">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">15 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:65.2%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Torah Learning</div>
+      <div class="ph-t">תורה</div>
+      <div class="ph-s">מה מקומה של לימוד התורה בחייך?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 15 — Torah Learning</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(14)">← חזור</button>
+      <button class="btn btn-p" onclick="go(16)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen15() {}
+<\/script>
+
+<!-- ═══ SCREEN 16 ═══ -->
+<div class="screen on" id="screen16">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">16 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:69.6%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Community Affiliation</div>
+      <div class="ph-t">השתייכות</div>
+      <div class="ph-s">לאיזו עדה את/ה שייך/ת?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 16 — Community Affiliation</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(15)">← חזור</button>
+      <button class="btn btn-p" onclick="go(17)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen16() {}
+<\/script>
+
+<!-- ═══ SCREEN 17 ═══ -->
+<div class="screen on" id="screen17">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">17 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:73.9%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Algorithm Complete!</div>
+      <div class="ph-t">הושלם!</div>
+      <div class="ph-s">כל המידע לצורך ההתאמה הושלם. כעת נמלא פרטים נוספים.</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 17 — Algorithm Complete!</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(16)">← חזור</button>
+      <button class="btn btn-p" onclick="go(18)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen17() {}
+<\/script>
+
+<!-- ═══ SCREEN 18 ═══ -->
+<div class="screen on" id="screen18">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">18 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:78.3%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Education and Career</div>
+      <div class="ph-t">השכלה</div>
+      <div class="ph-s">מה רמת ההשכלה שלך ומה את/ה עושה לפרנסה?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 18 — Education and Career</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(17)">← חזור</button>
+      <button class="btn btn-p" onclick="go(19)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen18() {}
+<\/script>
+
+<!-- ═══ SCREEN 19 ═══ -->
+<div class="screen on" id="screen19">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">19 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:82.6%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Personality</div>
+      <div class="ph-t">אישיות</div>
+      <div class="ph-s">תאר/י את עצמך — מה מאפיין אותך?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 19 — Personality</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(18)">← חזור</button>
+      <button class="btn btn-p" onclick="go(20)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen19() {}
+<\/script>
+
+<!-- ═══ SCREEN 20 ═══ -->
+<div class="screen on" id="screen20">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">20 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:87.0%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Looking For</div>
+      <div class="ph-t">מחפש/ת</div>
+      <div class="ph-s">מה את/ה מחפש/ת בשידוך?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 20 — Looking For</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(19)">← חזור</button>
+      <button class="btn btn-p" onclick="go(21)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen20() {}
+<\/script>
+
+<!-- ═══ SCREEN 21 ═══ -->
+<div class="screen on" id="screen21">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">21 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:91.3%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Additional Details</div>
+      <div class="ph-t">פרטים</div>
+      <div class="ph-s">מראה חיצוני ופרטים נוספים לפרופיל.</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 21 — Additional Details</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(20)">← חזור</button>
+      <button class="btn btn-p" onclick="go(22)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen21() {}
+<\/script>
+
+<!-- ═══ SCREEN 22 ═══ -->
+<div class="screen on" id="screen22">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">22 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:95.7%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">References</div>
+      <div class="ph-t">ממליצים</div>
+      <div class="ph-s">הוסף/י ממליצים שיאמתו את פרופילך.</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 22 — References</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(21)">← חזור</button>
+      <button class="btn btn-p" onclick="go(23)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen22() {}
+<\/script>
+
+<!-- ═══ SCREEN 23 ═══ -->
+<div class="screen on" id="screen23">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">23 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:100%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Complete!</div>
+      <div class="ph-t">סיום</div>
+      <div class="ph-s">הפרופיל שלך מוכן לבדיקה. ברוך/ה הבא/ה לבשערת!</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 23 — Complete!</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(22)">← חזור</button>
+      <button class="btn btn-p" onclick="go(24)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen23() {}
+<\/script>
+
+<!-- ═══ SCREEN 24 ═══ -->
+<div class="screen on" id="screen24">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">24 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:100%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Browse</div>
+      <div class="ph-t">גלישה</div>
+      <div class="ph-s">גלוש/י בהצעות שידוך</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 24 — Browse</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(23)">← חזור</button>
+      <button class="btn btn-p" onclick="go(25)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen24() {}
+<\/script>
+
+<!-- ═══ SCREEN 25 ═══ -->
+<div class="screen on" id="screen25">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">25 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:100%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">My Profiles</div>
+      <div class="ph-t">הפרופילים שלי</div>
+      <div class="ph-s">כל הפרופילים שנוצרו בחשבונך</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 25 — My Profiles</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(24)">← חזור</button>
+      <button class="btn btn-p" onclick="go(26)">המשך ←</button>
+    </div>
+  </div>
+</div>
+<script>
+function initScreen25() {}
+<\/script>
+
+  </div>
+</div>
+<script>
+const SCREEN_NOTES = {"1": {"title": "חשבון — Account", "notes": "Three registration paths: self, matchmaker, or family/friend. Gender selection determines the rest of the flow. Login card only appears after name is filled. Agreements card is the final step."}, "2": {"title": "אימות אימייל — Email Verification", "notes": "6-digit OTP sent to email from screen 1. Auto-advances focus between digits. Future: real email sending via Supabase Auth."}, "3": {"title": "תמונה — Photo Upload", "notes": "Main photo required; 3 additional optional. Photos are private by default — only shown to matchmakers and approved users. Future: AI moderation before approval."}, "4": {"title": "דליים — Bucket System", "notes": "Explains the 4-bucket matching system before inputs begin. Bucket 4 is a hard wall — profiles in it are never shown. This screen is informational only, no input."}, "5": {"title": "גיל — Age Preferences", "notes": "Cascading bucket spinners: B2 must extend beyond B1, B3 beyond B2. Ranges auto-update every birthday. B4 is auto-calculated as everything outside B3."}, "6": {"title": "מיקום — Location", "notes": "User's current city + willingness to relocate. Bucket system applies: ideal city in B1, acceptable cities in B2/B3. Future: Google Places autocomplete."}, "7": {"title": "משפחתי — Family Status", "notes": "Marital history: never married, divorced, widowed. Each status has different bucket implications. Divorced/widowed flow continues to children screen."}, "8": {"title": "ילדים — Children", "notes": "Number and ages of existing children, custody arrangement, and desired future children. Shown conditionally after screen 7 for divorced/widowed."}, "9": {"title": "קהילה — Community", "notes": "Jewish community affiliation used for matching. Options span the full spectrum from Haredi to secular. One of the primary matching dimensions."}, "10": {"title": "שפה — Language", "notes": "Primary language + additional languages spoken. Relevant for matching within immigrant communities. Hebrew is default for Israeli market."}, "11": {"title": "שבת — Shabbat", "notes": "Level of Shabbat observance. One of the core religious compatibility dimensions. Options range from fully observant to non-observant."}, "12": {"title": "כשרות — Kashrut", "notes": "Level of kashrut observance at home and outside. Separate questions for home kitchen vs. eating out. Important for day-to-day compatibility."}, "13": {"title": "exactly — Hard Lines", "notes": "Absolute deal-breakers that override the bucket system. If a match falls in Bucket 4 on any 'exactly' item, they are never shown regardless of other scores."}, "14": {"title": "מדיה — Media & Lifestyle", "notes": "Internet usage, smartphone policy, TV/movies. Important for very religious communities where media use varies widely."}, "15": {"title": "תורה — Torah Learning", "notes": "Daily learning schedule, kollel vs. working, bekius vs. iyun. Critical dimension for Haredi and Dati Leumi segments."}, "16": {"title": "השתייכות — Affiliation", "notes": "Specific eda: Ashkenazi/Sephardi/Mizrahi/Yemenite etc. Community of origin vs. current community. Used for cultural matching beyond religious level."}, "17": {"title": "הושלם! — Algorithm Done", "notes": "Transition screen: end of matching-algorithm inputs. Everything before this feeds the matching engine. Everything after is profile enrichment only."}, "18": {"title": "השכלה — Education", "notes": "Highest degree, field of study, current occupation. Not used in algorithm — displayed on profile card only."}, "19": {"title": "אישיות — Personality", "notes": "Adjective tags from a curated list. No free text per design philosophy. Pending: combine with screen 20 into one screen."}, "20": {"title": "מחפש/ת — Looking For", "notes": "What the user seeks in a match — tag-based, no free text. Pending: merge with screen 19 into a combined personality + looking-for screen."}, "21": {"title": "פרטים — Physical Details", "notes": "Height, build, hair, eyes, glasses, exercise habits. Displayed on profile card but not used in matching algorithm."}, "22": {"title": "ממליצים — References", "notes": "2-3 references who can vouch for the profile: rabbi, family, or close friend. References receive an email/WhatsApp to confirm. Required before profile goes live."}, "23": {"title": "סיום — Complete", "notes": "Profile submitted for review. Shows estimated review time. After approval, user is redirected to browse. Future: email notification on approval."}, "24": {"title": "גלישה — Browse", "notes": "Main browse interface. Filtered by bucket scores. Matchmaker view differs from singles view. Pending: full redesign."}, "25": {"title": "הפרופילים שלי — My Profiles", "notes": "For matchmakers: list of all profiles they manage. For singles: their own profile + status. Pending: full design."}};
+const LABELS={1:'חשבון',2:'אימייל',3:'תמונה',4:'דליים',5:'גיל',6:'מיקום',7:'משפחתי',8:'ילדים',9:'קהילה',10:'שפה',11:'שבת',12:'כשרות',13:'exactly',14:'מדיה',15:'תורה',16:'השתייכות',17:'הושלם!',18:'השכלה',19:'אישיות',20:'מחפש/ת',21:'פרטים',22:'ממליצים',23:'סיום',24:'גלישה',25:'הפרופילים שלי'};
+let _cur=1,_lang='he';
+
+function buildProgress(){
+  const c=document.getElementById('sb-progress');if(!c)return;
+  let h='';
+  for(let i=1;i<=25;i++) h+=`<div class="sp-item" id="sp-${i}" onclick="go(${i})"><div class="sp-dot"></div><div class="sp-label">${i}· ${LABELS[i]||''}</div></div>`;
+  c.innerHTML=h;
 }
 
-/* ═══════════════════════════════════
-   SHARED UTILITIES used by screens
-═══════════════════════════════════ */
-function tChk(el) {
-  const box = el.querySelector('.chkb');
-  if (box) box.classList.toggle('on');
-  if (box && box.classList.contains('on')) box.textContent = '✓';
-  else if (box) box.textContent = '';
+function go(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  const t=document.getElementById('screen'+n);if(t)t.classList.add('on');
+  const nd=SCREEN_NOTES[String(n)]||{};
+  const ne=document.getElementById('sb-num'),te=document.getElementById('sb-title'),noe=document.getElementById('sb-notes');
+  if(ne)ne.textContent=n;if(te)te.textContent=nd.title||'';if(noe)noe.textContent=nd.notes||'';
+  document.querySelectorAll('.sp-item').forEach((el,idx)=>{
+    el.classList.remove('active','done');
+    if(idx+1<n)el.classList.add('done');
+    if(idx+1===n)el.classList.add('active');
+  });
+  injectFooter(t,n);
+  const fn=window['initScreen'+n];if(typeof fn==='function')fn();
+  _cur=n;
+  const ai=document.getElementById('sp-'+n);if(ai)ai.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-/* Boot: load screen 1 */
+function injectFooter(screen,n){
+  if(!screen)return;
+  const ex=screen.querySelector('.screen-footer');if(ex)ex.remove();
+  const f=document.createElement('div');f.className='screen-footer';
+  f.innerHTML=`<button class="sf-btn${n<=1?' disabled':''}" onclick="go(${n-1})">&#8592;</button><span class="screen-footer-label">${String(n).padStart(2,'0')} / 25</span><button class="sf-btn${n>=25?' disabled':''}" onclick="go(${n+1})">&#8594;</button>`;
+  screen.appendChild(f);
+}
+
+function setLang(lang){_lang=lang;['en','he','ru'].forEach(l=>{const b=document.getElementById('lang-'+l);if(b){b.style.fontWeight=l===lang?'700':'400';b.style.color=l===lang?'var(--accent)':'';}});}
+function tChk(el){const b=el.querySelector('.chkb');if(!b)return;b.classList.toggle('on');b.textContent=b.classList.contains('on')?'\u2713':'';}
+function show(id){const el=document.getElementById(id);if(el)el.style.display='';}
+function hide(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+function pickRegType(type){const s=document.getElementById('reg-self'),o=document.getElementById('reg-other');if(type==='self'){s.classList.add('sm');o.classList.remove('sw');show('reg-gender-card');hide('reg-role-card');hide('reg-single-gender-card');hide('reg-single-card');}else{o.classList.add('sw');s.classList.remove('sm');show('reg-role-card');hide('reg-gender-card');hide('reg-name-card');hide('reg-login-card');hide('reg-agree-card');}}
+function pickRole(role){document.getElementById('role-matchmaker').classList.toggle('sm',role==='matchmaker');document.getElementById('role-family').classList.toggle('sw',role==='family');show('reg-single-gender-card');}
+function selG(g){document.getElementById('gc-man').classList.toggle('sm',g==='man');document.getElementById('gc-woman').classList.toggle('sw',g==='woman');show('reg-name-card');show('reg-login-card');show('reg-agree-card');}
+function selSingleG(g){document.getElementById('gc-single-man').classList.toggle('sm',g==='man');document.getElementById('gc-single-woman').classList.toggle('sw',g==='woman');show('reg-single-card');show('reg-login-card');show('reg-agree-card');}
+function triggerUpload(id){const el=document.getElementById(id);if(el)el.click();}
+function previewPhoto(input,dropId){if(!input.files||!input.files[0])return;const r=new FileReader();r.onload=(e)=>{const d=document.getElementById(dropId);if(!d)return;d.style.backgroundImage=`url(${e.target.result})`;d.style.backgroundSize='cover';d.style.backgroundPosition='center';['drop-ic','drop-t','drop-s'].forEach(c=>{const el=d.querySelector('.'+c);if(el)el.style.display='none';});};r.readAsDataURL(input.files[0]);}
+let _age5={myAge:34,b1y:0,b1o:2,b2y:2,b2o:4,b3y:4,b3o:6};
+function onDobInput(){const dob=document.getElementById('dob')&&document.getElementById('dob').value;if(!dob)return;const today=new Date(),birth=new Date(dob);let age=today.getFullYear()-birth.getFullYear();if(today.getMonth()-birth.getMonth()<0||(today.getMonth()===birth.getMonth()&&today.getDate()<birth.getDate()))age--;_age5.myAge=Math.max(18,Math.min(120,age));updateAgeDisplays();}
+function aa(field,delta){_age5[field]=Math.max(0,_age5[field]+delta);if(field==='b1y'&&_age5.b2y<_age5.b1y)_age5.b2y=_age5.b1y;if(field==='b2y'&&_age5.b3y<_age5.b2y)_age5.b3y=_age5.b2y;if(field==='b1o'&&_age5.b2o<_age5.b1o)_age5.b2o=_age5.b1o;if(field==='b2o'&&_age5.b3o<_age5.b2o)_age5.b3o=_age5.b2o;updateAgeDisplays();}
+function updateAgeDisplays(){const a=_age5.myAge;['ac1','ac2','ac3'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=a;});const ad=document.getElementById('ageDisp');if(ad)ad.textContent=a;['b1y','b1o','b2y','b2o','b3y','b3o'].forEach(f=>{const el=document.getElementById(f);if(el)el.textContent=_age5[f];const ael=document.getElementById(f+'-age');if(ael)ael.textContent='age '+(a+(f.endsWith('y')?-_age5[f]:_age5[f]));});const b1Min=a-_age5.b1y,b1Max=a+_age5.b1o;setAres('b1r',`Ages ${b1Min}–${b1Max}`,`${_age5.b1y} yrs younger · ${_age5.b1o} yrs older`);setAres('b2r',`Ages ${a-_age5.b2y}–${a-_age5.b1y-1} and ${a+_age5.b1o+1}–${a+_age5.b2o}`,'');setAres('b3r',`Ages ${a-_age5.b3y}–${a-_age5.b2y-1} and ${a+_age5.b2o+1}–${a+_age5.b3o}`,'Absolute outer range');setAres('b4r',`Ages 18–${a-_age5.b3y-1} and ${a+_age5.b3o+1}+`,'לא יוצג');}
+function setAres(id,ages,yrs){const el=document.getElementById(id);if(!el)return;const a=el.querySelector('.ares-ages'),y=el.querySelector('.ares-yrs');if(a)a.textContent=ages;if(y)y.textContent=yrs;}
+
+function toggleDev(){
+  const panel=document.getElementById('dev-panel');
+  const btn=document.getElementById('dev-toggle');
+  panel.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+buildProgress();
 go(1);
 </script>
 </body>
