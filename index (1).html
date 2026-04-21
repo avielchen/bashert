@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>בשערת — Bashert Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@300;400;500;600;700;800;900&family=Noto+Serif+Hebrew:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ━━━ TOKENS ━━━ */
+:root{
+  --bg:#F7F5F2;--bg2:#F0EDE8;--bg3:#E8E4DE;--bg4:#DDD9D2;
+  --surface:#FFFFFF;--surface2:#F5F2EE;
+  --line:rgba(0,0,0,.08);--line2:rgba(0,0,0,.13);
+  --t0:#1A1814;--t1:#2E2A24;--t2:#6B6560;
+  --t3:#9E9790;--t4:#C5BFB8;
+  --accent:#3D5CE6;--accent2:#5B78F0;
+  --abg:rgba(61,92,230,.08);--abd:rgba(61,92,230,.28);
+  --gold:#B07A20;--gdim:rgba(176,122,32,.12);--gbd:rgba(176,122,32,.3);
+  --rose:#C93060;--rdim:rgba(201,48,96,.1);--rbd:rgba(201,48,96,.3);
+  --b1:#3D5CE6;--b1b:rgba(61,92,230,.08);--b1d:rgba(61,92,230,.35);
+  --b2:#1A8A52;--b2b:rgba(26,138,82,.08);--b2d:rgba(26,138,82,.35);
+  --b3:#B07A20;--b3b:rgba(176,122,32,.1);--b3d:rgba(176,122,32,.35);
+  --b4:#C93060;--b4b:rgba(201,48,96,.08);--b4d:rgba(201,48,96,.3);
+  --r:10px;--r2:14px;--r3:18px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans Hebrew',sans-serif;font-weight:300;background:var(--bg);color:var(--t1);height:100vh;overflow:hidden;}
+button,input,select,textarea{font-family:'Noto Sans Hebrew',sans-serif;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px;}
+
+/* ━━━ SCREEN ━━━ */
+.screen{display:none;position:absolute;inset:0;flex-direction:column;height:100vh;overflow:hidden;}
+.screen.on{display:flex;animation:sIn .32s cubic-bezier(.22,1,.36,1);}
+@keyframes sIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+
+/* ━━━ PROTO BAR ━━━ */
+.lang-sw{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:20px;background:var(--bg3);border:1px solid var(--line2);}
+.lang-btn{font-size:11px;font-weight:400;color:var(--t2);cursor:pointer;padding:2px 4px;border-radius:4px;transition:all .15s;border:none;background:none;font-family:'Noto Sans Hebrew',sans-serif;}
+.lang-btn:hover{color:var(--accent);}
+.proto{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(247,245,242,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line2);padding:7px 14px;box-shadow:0 -2px 12px rgba(0,0,0,.06);display:flex;align-items:center;gap:4px;overflow-x:auto;}
+.proto::-webkit-scrollbar{height:0;}
+.plbl{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);white-space:nowrap;flex-shrink:0;margin-left:6px;}
+.pb{padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.08);background:transparent;color:var(--t3);font-family:'Noto Sans Hebrew',sans-serif;font-size:10px;white-space:nowrap;flex-shrink:0;cursor:pointer;transition:all .15s;}
+.pb:hover{color:var(--t1);border-color:var(--line2);}
+.pb.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pdiv{width:1px;height:14px;background:var(--line);flex-shrink:0;margin:0 4px;}
+
+/* ━━━ TOP BAR ━━━ */
+.tb{height:52px;display:flex;align-items:center;padding:0 24px;flex-shrink:0;border-bottom:1px solid var(--line);background:var(--bg);}
+.logo{font-family:'Noto Serif Hebrew',serif;font-size:18px;font-weight:700;color:var(--t0);letter-spacing:-.02em;display:flex;align-items:baseline;gap:8px;}
+.logo-he{font-family:'Noto Serif Hebrew',serif;font-size:13px;font-weight:300;color:var(--gold);opacity:.7;}
+.tsp{flex:1;}
+.sbadge{font-size:11px;color:var(--t3);letter-spacing:.08em;background:var(--surface);border:1px solid var(--line);padding:4px 12px;border-radius:20px;}
+
+/* ━━━ PROGRESS ━━━ */
+.pstrip{height:2px;background:var(--bg3);flex-shrink:0;position:relative;}
+.pfill{position:absolute;right:0;top:0;bottom:0;background:linear-gradient(270deg,var(--accent),var(--gold));border-radius:0 1px 1px 0;transition:width .4s cubic-bezier(.22,1,.36,1);}
+
+/* ━━━ SCROLL PAGE ━━━ */
+.pg{flex:1;overflow-y:auto;overflow-x:hidden;padding:28px 24px 80px;}
+.pgc{max-width:640px;margin:0 auto;}
+
+/* ━━━ PAGE HEADER ━━━ */
+.ph{margin-bottom:24px;}
+.ph-ey{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent2);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.ph-ey::after{content:'';width:20px;height:1px;background:var(--accent);}
+.ph-t{font-family:'Noto Serif Hebrew',serif;font-size:26px;font-weight:700;color:var(--t0);line-height:1.1;letter-spacing:-.02em;margin-bottom:8px;}
+.ph-s{font-size:14px;color:var(--t2);line-height:1.6;}
+
+/* ━━━ CARD ━━━ */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r3);padding:22px;margin-bottom:14px;}
+.ct{font-family:'Noto Serif Hebrew',serif;font-size:13px;font-weight:600;color:var(--t1);letter-spacing:-.01em;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ctd{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* ━━━ TRANSITION CARD ━━━ */
+.transition-card{background:linear-gradient(135deg,rgba(79,110,247,.08),rgba(232,184,75,.06));border:1px solid rgba(79,110,247,.25);border-radius:var(--r3);padding:32px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden;}
+.transition-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--gold),var(--rose));}
+.tc-icon{font-size:48px;margin-bottom:16px;}
+.tc-title{font-family:'Noto Serif Hebrew',serif;font-size:24px;font-weight:700;color:var(--t0);margin-bottom:10px;letter-spacing:-.02em;}
+.tc-body{font-size:14px;color:var(--t2);line-height:1.75;max-width:480px;margin:0 auto 20px;}
+.tc-tags{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:24px;}
+.tc-tag{font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--line2);color:var(--t3);}
+.tc-tag.done{border-color:var(--b2d);background:var(--b2b);color:var(--b2);}
+
+/* ━━━ FIELDS ━━━ */
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.lbl{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--t2);}
+.lbl em{color:var(--rose);font-style:normal;}
+.fi{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:12px 14px;font-size:14px;color:var(--t1);outline:none;transition:all .2s;width:100%;}
+.fi:focus{border-color:var(--accent);background:var(--bg4);box-shadow:0 0 0 3px var(--abg);}
+.fi::placeholder{color:var(--t3);}
+.fi.ok{border-color:var(--b2);background:rgba(42,185,122,.06);}
+.sel{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:12px 14px 12px 36px;font-size:14px;color:var(--t1);outline:none;width:100%;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.3)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center;transition:all .2s;}
+.sel:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--abg);outline:none;}
+.sel option{background:var(--surface);}
+.frow{display:flex;gap:12px;}.frow .fg{flex:1;}
+.hint{font-size:11px;color:var(--t3);line-height:1.5;margin-top:2px;}
+.div{height:1px;background:var(--line);margin:16px 0;}
+.pw-bar{display:flex;gap:3px;margin-top:6px;}
+.pw-seg{flex:1;height:2px;border-radius:1px;background:var(--line2);}
+.pw-seg.on{background:var(--accent);}
+.pw-lbl{font-size:10px;color:var(--accent);font-weight:500;margin-left:8px;}
+
+/* ━━━ BUTTONS ━━━ */
+.btn{padding:12px 22px;border-radius:var(--r);border:none;font-family:'Noto Sans Hebrew',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;letter-spacing:.02em;display:inline-flex;align-items:center;gap:8px;}
+.btn-p{background:var(--accent);color:#fff;box-shadow:0 0 20px rgba(79,110,247,.3);}
+.btn-p:hover{background:var(--accent2);transform:translateY(-1px);}
+.btn-g{background:var(--surface2);border:1px solid var(--line2);color:var(--t2);}
+.btn-g:hover{color:var(--t1);background:var(--bg4);}
+.btn-f{width:100%;justify-content:center;padding:14px;border-radius:var(--r2);font-size:14px;margin-bottom:8px;}
+
+/* ━━━ BOTTOM BAR ━━━ */
+.bot{position:fixed;bottom:44px;left:0;right:0;z-index:200;border-top:1px solid var(--line2);background:rgba(247,245,242,.97);box-shadow:0 -2px 12px rgba(0,0,0,.06);backdrop-filter:blur(16px);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;}
+.bot-hint{font-size:11px;color:var(--t3);}
+.bot-btns{display:flex;gap:8px;}
+
+/* ━━━ GENDER CARDS ━━━ */
+.gcards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px;}
+.gcard{border:1.5px solid var(--line2);border-radius:var(--r3);padding:24px 18px;cursor:pointer;transition:all .3s;background:var(--surface);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:12px;user-select:none;}
+.gcard::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;}
+.gcard.mc::before{background:radial-gradient(ellipse 80% 80% at 50% 100%,rgba(79,110,247,.15),transparent);}
+.gcard.wc::before{background:radial-gradient(ellipse 80% 80% at 50% 100%,rgba(240,90,126,.15),transparent);}
+.gcard:hover{transform:translateY(-2px);}
+.gcard.sm{border-color:var(--accent);background:var(--abg);box-shadow:0 0 0 1px var(--accent),0 8px 32px rgba(79,110,247,.2);}
+.gcard.sm::before{opacity:1;}
+.gcard.sw{border-color:var(--rose);background:var(--rdim);box-shadow:0 0 0 1px var(--rose),0 8px 32px rgba(240,90,126,.2);}
+.gcard.sw::before{opacity:1;}
+.gc-em{width:64px;height:64px;border-radius:50%;background:var(--bg3);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:28px;transition:all .3s;}
+.gcard.sm .gc-em{border-color:var(--abd);background:var(--abg);}
+.gcard.sw .gc-em{border-color:var(--rbd);background:var(--rdim);}
+.gc-t{font-family:'Noto Serif Hebrew',serif;font-size:15px;font-weight:600;color:var(--t2);transition:color .3s;text-align:center;}
+.gcard.sm .gc-t{color:var(--accent2);}
+.gcard.sw .gc-t{color:var(--rose);}
+.gc-s{font-size:11px;color:var(--t3);text-align:center;}
+.gc-ck{position:absolute;top:12px;left:12px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;opacity:0;transform:scale(.4);transition:all .25s;}
+.gcard.sm .gc-ck{background:var(--accent);opacity:1;transform:scale(1);}
+.gcard.sw .gc-ck{background:var(--rose);opacity:1;transform:scale(1);}
+
+/* ━━━ OTP ━━━ */
+.otp-row{display:flex;gap:8px;justify-content:center;margin:20px 0;}
+.otp{width:52px;height:60px;border:1px solid var(--line2);border-radius:var(--r2);background:var(--surface);text-align:center;font-size:22px;font-weight:500;color:var(--t0);outline:none;transition:all .2s;font-family:'Noto Serif Hebrew',serif;}
+.otp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--abg);}
+.otp.ok{border-color:var(--b2);color:var(--b2);}
+
+/* ━━━ BUCKET EXPLAINER ━━━ */
+.be{display:flex;flex-direction:column;gap:8px;margin:18px 0;}
+.ber{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:var(--r2);border:1px solid;transition:all .2s;}
+.ber:hover{transform:translateX(-4px);}
+.ber1{border-color:var(--b1d);background:var(--b1b);}
+.ber2{border-color:var(--b2d);background:var(--b2b);}
+.ber3{border-color:var(--b3d);background:var(--b3b);}
+.ber4{border-color:var(--b4d);background:var(--b4b);}
+.be-n{width:40px;height:40px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.be-bn-1{background:var(--b1);}.be-bn-2{background:var(--b2);}
+.be-bn-3{background:var(--b3);}.be-bn-4{background:var(--b4);}
+.be-n .bn-num{font-family:'Noto Serif Hebrew',serif;font-size:18px;font-weight:900;color:#fff;}
+.be-ti{font-size:13px;font-weight:500;color:var(--t1);}
+.be-de{font-size:11px;color:var(--t2);margin-top:2px;}
+
+/* ━━━ BUCKET CAPSULE SYSTEM ━━━ */
+.bsys{display:flex;flex-direction:column;gap:8px;}
+.brow{display:grid;grid-template-columns:74px 1fr;border-radius:var(--r2);border:1px solid;overflow:hidden;min-height:56px;}
+.br1{border-color:var(--b1d);}.br2{border-color:var(--b2d);}
+.br3{border-color:var(--b3d);}.br4{border-color:var(--b4d);}
+.bh{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 6px;border-right:1px solid;}
+.br1 .bh{background:var(--b1b);border-color:var(--b1d);}
+.br2 .bh{background:var(--b2b);border-color:var(--b2d);}
+.br3 .bh{background:var(--b3b);border-color:var(--b3d);}
+.br4 .bh{background:var(--b4b);border-color:var(--b4d);}
+.bn{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;}
+.br1 .bn{background:var(--b1);}.br2 .bn{background:var(--b2);}
+.br3 .bn{background:var(--b3);}.br4 .bn{background:var(--b4);}
+.ar1 .bn,.ar-bn-1{background:var(--b1);}
+.ar2 .bn,.ar-bn-2{background:var(--b2);}
+.ar3 .bn,.ar-bn-3{background:var(--b3);}
+.ar4 .bn,.ar-bn-4{background:var(--b4);}
+.bn-num{font-family:'Noto Serif Hebrew',serif;font-size:18px;font-weight:900;color:#fff;line-height:1;text-shadow:1px 2px 4px rgba(0,0,0,.25);}
+.bht{font-size:8px;font-weight:700;text-align:center;letter-spacing:.03em;text-transform:uppercase;margin-top:2px;}
+.br1 .bht{color:var(--b1);}.br2 .bht{color:var(--b2);}
+.br3 .bht{color:var(--b3);}.br4 .bht{color:var(--b4);}
+.bb{padding:8px 10px;min-height:48px;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;}
+.br1 .bb{background:rgba(61,92,230,.03);}
+.br2 .bb{background:rgba(26,138,82,.03);}
+.br3 .bb{background:rgba(176,122,32,.03);}
+.br4 .bb{background:rgba(201,48,96,.03);}
+.be-empty{font-size:11px;color:var(--t4);font-style:italic;padding:5px 2px;align-self:center;}
+.cap{display:inline-flex;align-items:stretch;border-radius:50px;overflow:hidden;border:1px solid var(--line2);background:var(--bg3);cursor:default;transition:border-color .15s,background .15s;}
+.cap-new{animation:capIn .22s ease;}
+@keyframes capIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.cl{padding:6px 12px 6px 11px;font-size:11px;color:var(--t1);display:flex;align-items:center;white-space:nowrap;border-right:1px solid var(--line);font-weight:400;transition:color .15s;}
+.cs{display:flex;align-items:stretch;}
+.cseg{width:22px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--t4);border-left:1px solid var(--line);}
+.cseg:hover{color:var(--t1);background:var(--line);}
+.cseg.s1{background:var(--b1);color:#fff;}
+.cseg.s2{background:var(--b2);color:#fff;}
+.cseg.s3{background:var(--b3);color:#fff;}
+.cseg.s4{background:var(--b4);color:#fff;}
+.cap.in1{border-color:var(--b1d);}.cap.in1 .cl{color:var(--b1);}
+.cap.in2{border-color:var(--b2d);}.cap.in2 .cl{color:var(--b2);}
+.cap.in3{border-color:var(--b3d);}.cap.in3 .cl{color:var(--b3);}
+.cap.in4{border-color:var(--b4d);}.cap.in4 .cl{color:var(--b4);}
+@keyframes capOut{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.85)}}
+.cap-exit{animation:capOut .15s ease forwards;}
+
+/* ━━━ AGE ROWS ━━━ */
+.ar{border-radius:var(--r3);border:1px solid;overflow:hidden;margin-bottom:8px;}
+.ar1{border-color:var(--b1d);}.ar2{border-color:var(--b2d);}
+.ar3{border-color:var(--b3d);}.ar4{border-color:var(--b4d);}
+.arh{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid;}
+.ar1 .arh{background:var(--b1b);border-color:var(--b1d);}
+.ar2 .arh{background:var(--b2b);border-color:var(--b2d);}
+.ar3 .arh{background:var(--b3b);border-color:var(--b3d);}
+.ar4 .arh{background:var(--b4b);border-color:var(--b4d);}
+.arb{padding:16px 20px;}
+.ar1 .arb{background:rgba(79,110,247,.03);}
+.ar2 .arb{background:rgba(42,185,122,.03);}
+.ar3 .arb{background:rgba(232,184,75,.03);}
+.ar4 .arb{background:rgba(240,90,126,.03);}
+.apick{display:flex;align-items:center;justify-content:center;gap:20px;}
+.age-ctrl{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:100px;}
+.age-ctrl-lbl{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);}
+.age-spinner{display:flex;align-items:center;gap:10px;}
+.vud{display:flex;flex-direction:column;gap:3px;}
+.vub{width:28px;height:28px;border-radius:7px;border:none;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all .15s;}
+.ar1 .vub{background:var(--b1b);color:var(--b1);border:1px solid var(--b1d);}
+.ar1 .vub:hover{background:var(--b1);color:#fff;}
+.ar2 .vub{background:var(--b2b);color:var(--b2);border:1px solid var(--b2d);}
+.ar2 .vub:hover{background:var(--b2);color:#fff;}
+.ar3 .vub{background:var(--b3b);color:var(--b3);border:1px solid var(--b3d);}
+.ar3 .vub:hover{background:var(--b3);color:#fff;}
+.age-num-block{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.anum{font-family:'Noto Serif Hebrew',serif;font-size:30px;font-weight:800;min-width:44px;text-align:center;line-height:1;}
+.ar1 .anum{color:var(--b1);}.ar2 .anum{color:var(--b2);}.ar3 .anum{color:var(--b3);}
+.amin-age{font-size:11px;font-weight:400;color:var(--t3);letter-spacing:.02em;}
+.amid{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.ayou{font-family:'Noto Serif Hebrew',serif;font-size:44px;font-weight:800;color:var(--t0);line-height:1;letter-spacing:-.03em;}
+.ayouls{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);}
+.ares{padding:12px 16px;border-radius:var(--r2);font-size:13px;text-align:center;line-height:1.65;margin-top:14px;}
+.ar1 .ares{background:var(--b1b);border:1px solid var(--b1d);color:var(--b1);}
+.ar2 .ares{background:var(--b2b);border:1px solid var(--b2d);color:var(--b2);}
+.ar3 .ares{background:var(--b3b);border:1px solid var(--b3d);color:var(--b3);}
+.ar4 .ares{background:var(--b4b);border:1px solid var(--b4d);color:var(--b4);}
+.ares-ages{font-family:'Noto Serif Hebrew',serif;font-size:17px;font-weight:700;display:block;margin-bottom:3px;}
+.ares-yrs{font-size:11px;opacity:.8;}
+
+/* ━━━ TAGS ━━━ */
+.tags{display:flex;flex-wrap:wrap;gap:6px;}
+.tag{padding:7px 14px;border-radius:50px;border:1px solid var(--line2);background:var(--surface);font-size:12px;color:var(--t2);cursor:pointer;transition:all .2s;}
+.tag:hover{color:var(--t1);}
+.tag.sel{border-color:var(--abd);background:var(--abg);color:var(--accent2);}
+.tag.tp{border-color:var(--abd);background:var(--abg);color:var(--accent2);}
+.tag.ts{border-color:var(--b2d);background:var(--b2b);color:var(--b2);}
+.tag.tb{border-color:var(--b3d);background:var(--b3b);color:var(--b3);}
+.media-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;}
+.media-tags .tag{flex:none;}
+.adj-cloud{display:flex;flex-wrap:wrap;gap:7px;}
+.adj{padding:8px 15px;border-radius:50px;border:1px solid var(--line2);background:var(--surface);font-size:12px;color:var(--t2);cursor:pointer;transition:all .2s;}
+.adj:hover{color:var(--t1);border-color:var(--line2);}
+.adj.sel{border-color:var(--abd);background:var(--abg);color:var(--accent2);}
+
+/* ━━━ MULTI-SELECT CHECKBOXES ━━━ */
+.multi-checks{display:flex;flex-direction:column;gap:6px;}
+.mchk{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);cursor:pointer;transition:all .2s;}
+.mchk:hover{border-color:var(--line2);}
+.mchk.on{border-color:var(--abd);background:var(--abg);}
+.mchk-box{width:18px;height:18px;border-radius:5px;border:1px solid var(--line2);background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px;transition:all .2s;}
+.mchk.on .mchk-box{background:var(--accent);border-color:var(--accent);color:#fff;}
+.mchk-lbl{font-size:13px;color:var(--t2);line-height:1.4;}
+.mchk.on .mchk-lbl{color:var(--t1);}
+.radio-opts{display:flex;flex-direction:column;gap:6px;}
+.ropt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);cursor:pointer;transition:all .2s;}
+.ropt:hover{border-color:var(--line2);}
+.ropt.on{border-color:var(--abd);background:var(--abg);}
+.ropt-circle{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .2s;}
+.ropt.on .ropt-circle{border-color:var(--accent);background:var(--accent);}
+.ropt-circle::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff;opacity:0;transition:opacity .2s;}
+.ropt.on .ropt-circle::after{opacity:1;}
+.ropt-lbl{font-size:13px;color:var(--t2);line-height:1.4;}
+.ropt.on .ropt-lbl{color:var(--t1);}
+
+/* ━━━ NOTICE ━━━ */
+.notice{border-radius:var(--r2);padding:14px 16px;font-size:13px;line-height:1.65;margin-bottom:14px;}
+.nb{background:var(--abg);border:1px solid var(--abd);color:rgba(180,200,255,.85);}
+.ng{background:var(--gdim);border:1px solid var(--gbd);color:rgba(255,220,140,.85);}
+.ngr{background:var(--b2b);border:1px solid var(--b2d);color:rgba(140,240,190,.85);}
+
+/* ━━━ SKIP BOX ━━━ */
+.skip{border:1px solid var(--gbd);border-radius:var(--r3);padding:20px 22px;margin-bottom:16px;background:linear-gradient(135deg,rgba(232,184,75,.07),rgba(232,184,75,.03));position:relative;overflow:hidden;}
+.skip::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
+.skip-t{font-family:'Noto Serif Hebrew',serif;font-size:16px;font-weight:700;color:var(--gold);margin-bottom:8px;}
+.skip-b{font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px;}
+.skip-btn{padding:9px 20px;border-radius:var(--r);border:1px solid var(--gbd);background:var(--gdim);color:var(--gold);font-family:'Noto Sans Hebrew',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;}
+.skip-btn:hover{background:var(--gold);color:#000;}
+
+/* ━━━ CHECKBOX (terms) ━━━ */
+.chk{display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:10px;}
+.chkb{width:18px;height:18px;border-radius:5px;border:1px solid var(--line2);background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px;transition:all .2s;}
+.chkb.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.chk-l{font-size:13px;color:var(--t2);line-height:1.5;}
+.chk-l a{color:var(--accent);text-decoration:none;}
+
+/* ━━━ VISIBILITY OPTIONS ━━━ */
+.vo{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r2);cursor:pointer;transition:all .2s;margin-bottom:8px;}
+.vo:hover{border-color:var(--line2);}
+.vo.on{border-color:var(--abd);background:var(--abg);}
+.vr{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line2);flex-shrink:0;margin-top:2px;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.vo.on .vr{border-color:var(--accent);background:var(--accent);}
+.vr::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff;opacity:0;}
+.vo.on .vr::after{opacity:1;}
+.vt{font-size:13px;font-weight:500;color:var(--t1);}
+.vs{font-size:11px;color:var(--t3);margin-top:2px;}
+
+/* ━━━ REF CARD ━━━ */
+.ref-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:16px;margin-bottom:10px;}
+.ref-num{width:26px;height:26px;border-radius:50%;background:var(--abg);border:1px solid var(--abd);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;}
+
+/* ━━━ PHOTO UPLOAD ━━━ */
+.drop{border:1.5px dashed var(--line2);border-radius:var(--r3);padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface);}
+.drop:hover{border-color:var(--abd);background:var(--abg);}
+.drop-ic{font-size:38px;opacity:.3;margin-bottom:10px;}
+.drop-t{font-family:'Noto Serif Hebrew',serif;font-size:18px;font-weight:600;color:var(--t1);margin-bottom:5px;}
+.drop-s{font-size:12px;color:var(--t3);}
+
+/* ━━━ CHILDREN TABLE ━━━ */
+.child-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);}
+.child-row:last-child{border-bottom:none;}
+.child-row input.fi{flex:1;min-width:0;padding:8px 10px;}
+.married-chk{display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;font-size:12px;color:var(--t2);}
+.mc-box{width:16px;height:16px;border-radius:4px;border:1px solid var(--line2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .2s;flex-shrink:0;}
+.mc-box.on{background:var(--b2);border-color:var(--b2);color:#fff;}
+.reloc-opts{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+
+/* ━━━ RTL OVERRIDES ━━━ */
+[dir="rtl"] .ph-ey::before{display:none;}
+[dir="rtl"] .pfill{right:0;left:auto;}
+[dir="rtl"] .bot{flex-direction:row-reverse;}
+[dir="rtl"] .bot-btns{flex-direction:row-reverse;}
+[dir="rtl"] .brow{direction:rtl;}
+[dir="rtl"] .cap .cl{border-right:none;border-left:1px solid var(--line);}
+[dir="rtl"] .cs .cseg{border-left:none;border-right:1px solid var(--line);}
+[dir="rtl"] .cs .cseg:first-child{border-right:none;}
+[dir="rtl"] .frow{flex-direction:row-reverse;}
+[dir="rtl"] .card{text-align:right;}
+[dir="rtl"] .ct{flex-direction:row-reverse;}
+[dir="rtl"] .ph-t,[dir="rtl"] .ph-s,[dir="rtl"] .ph-ey{text-align:right;}
+[dir="rtl"] .gcards{direction:rtl;}
+[dir="rtl"] .tags{direction:rtl;}
+[dir="rtl"] .adj-cloud{direction:rtl;}
+[dir="rtl"] .ropt{flex-direction:row-reverse;text-align:right;}
+[dir="rtl"] .ropt-lbl{text-align:right;}
+[dir="rtl"] .chk{flex-direction:row-reverse;}
+[dir="rtl"] .chk-l{text-align:right;}
+[dir="rtl"] .hint,[dir="rtl"] .notice{text-align:right;}
+[dir="rtl"] .lbl{text-align:right;}
+[dir="rtl"] .fg{align-items:flex-start;}
+[dir="rtl"] .bh{direction:rtl;}
+[dir="rtl"] .bht{direction:rtl;}
+[dir="rtl"] .spec-opt{flex-direction:row-reverse;}
+[dir="rtl"] .spec-body{text-align:right;}
+[dir="rtl"] .spec-t,[dir="rtl"] .spec-s{text-align:right;}
+[dir="rtl"] .gc-t,[dir="rtl"] .gc-s{text-align:right;}
+[dir="rtl"] .tc-body{text-align:right;}
+[dir="rtl"] .btn{direction:rtl;}
+[dir="rtl"] .btn-f{flex-direction:row-reverse;}
+[dir="rtl"] .arh{flex-direction:row-reverse;}
+[dir="rtl"] .apick{flex-direction:row-reverse;}
+[dir="rtl"] .age-ctrl{align-items:flex-end;}
+[dir="rtl"] .ber{flex-direction:row-reverse;}
+[dir="rtl"] .mchk{flex-direction:row-reverse;}
+[dir="rtl"] .mchk-lbl{text-align:right;}
+[dir="rtl"] input,[dir="rtl"] textarea,[dir="rtl"] select{text-align:right;direction:rtl;}
+[dir="rtl"] .sel{background-position:left 12px center;padding:12px 14px 12px 36px;}
+[dir="rtl"] .fi::placeholder{text-align:right;}
+[dir="rtl"] .pw-bar{flex-direction:row-reverse;}
+[dir="rtl"] .pw-lbl{margin-left:0;margin-right:8px;}
+[dir="rtl"] .otp-row{direction:ltr;}
+[dir="rtl"] #lang-switcher{left:10px;right:auto;}
+[dir="rtl"] .proto{flex-direction:row-reverse;}
+[dir="rtl"] .plbl{margin-right:0;margin-left:6px;}
+[dir="rtl"] .bot-hint{direction:rtl;}
+[dir="rtl"] .gc-ck{left:12px;right:auto;}
+[dir="rtl"] .sbadge{direction:ltr;}
+[dir="rtl"] .drop{direction:rtl;}
+
+html,body{height:100%;overflow:hidden;margin:0;}
+.shell{display:flex;height:100vh;background:#E8E4DE;align-items:center;justify-content:center;}
+.app-col{width:390px;height:100vh;position:relative;background:var(--bg);box-shadow:0 0 40px rgba(0,0,0,.18);z-index:2;overflow:hidden;flex-shrink:0;}
+.proto{display:none!important;}
+.bot{display:none!important;}
+.screen .pg{padding-bottom:64px!important;}
+.screen-footer{position:absolute;bottom:0;left:0;right:0;z-index:100;background:rgba(247,245,242,.96);backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,.07);padding:10px 20px 12px;display:flex;align-items:center;justify-content:space-between;}
+.screen-footer-label{font-size:10px;color:#C5BFB8;letter-spacing:.1em;text-transform:uppercase;flex:1;text-align:center;direction:ltr;}
+.sf-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,0,0,.1);background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#6B6560;transition:all .15s;flex-shrink:0;line-height:1;}
+.sf-btn:hover{background:#3D5CE6;color:white;border-color:#3D5CE6;}
+.sf-btn.disabled{opacity:.25;pointer-events:none;}
+#lang-switcher{position:absolute;top:10px;left:10px;z-index:9999;display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--line2);border-radius:20px;padding:3px 8px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+#dev-toggle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:9000;background:#1A1814;color:#9E9790;border:none;border-radius:8px 0 0 8px;padding:10px 7px;font-size:10px;font-weight:700;letter-spacing:.12em;writing-mode:vertical-rl;cursor:pointer;transition:all .2s;font-family:"Noto Sans Hebrew",sans-serif;}
+#dev-toggle:hover{background:#3D5CE6;color:white;}
+#dev-toggle.open{background:#3D5CE6;color:white;right:300px;}
+#dev-panel{position:fixed;top:0;right:-300px;width:300px;height:100vh;z-index:8999;background:#1A1814;border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;transition:right .3s cubic-bezier(.22,1,.36,1);overflow:hidden;direction:ltr;}
+#dev-panel.open{right:0;}
+.dev-header{padding:18px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;}
+.dev-app-name{font-family:"Noto Serif Hebrew",serif;font-size:15px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:2px;}
+.dev-sub{font-size:10px;color:#4B4845;letter-spacing:.1em;text-transform:uppercase;}
+.dev-screen-info{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.dev-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(61,92,230,.15);border:1px solid rgba(61,92,230,.3);border-radius:20px;padding:3px 10px;font-size:10px;color:#5B78F0;margin-bottom:8px;}
+.dev-screen-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:8px;direction:rtl;text-align:right;}
+.dev-notes-area{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.6;resize:none;font-family:"Noto Sans Hebrew",sans-serif;outline:none;box-sizing:border-box;}
+.dev-notes-area:focus{border-color:rgba(61,92,230,.5);background:rgba(61,92,230,.08);}
+.dev-progress-section{flex:1;overflow-y:auto;padding:8px 10px;}
+.dev-progress-section::-webkit-scrollbar{width:3px;}
+.dev-progress-section::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+.dev-section-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#4B4845;padding:6px 6px 4px;}
+.sp-item{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:5px;cursor:pointer;transition:background .12s;}
+.sp-item:hover{background:rgba(255,255,255,.05);}
+.sp-item.active{background:rgba(61,92,230,.15);}
+.sp-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.12);flex-shrink:0;}
+.sp-item.active .sp-dot{background:#5B78F0;}
+.sp-item.done .sp-dot{background:#1A8A52;}
+.sp-label{font-size:11px;color:rgba(255,255,255,.25);direction:rtl;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp-item.active .sp-label{color:#5B78F0;font-weight:600;}
+.sp-item.done .sp-label{color:rgba(26,138,82,.7);}
+@media(max-width:700px){.app-col{width:100%;box-shadow:none;}#dev-toggle,#dev-panel{display:none;}}
+</style>
+</head>
+<body>
+
+<button id="dev-toggle" onclick="toggleDev()">DEV NOTES</button>
+
+<div id="dev-panel">
+  <div class="dev-header">
+    <div class="dev-app-name">בשערת · Bashert</div>
+    <div class="dev-sub">Dev Notes · v0.1</div>
+  </div>
+  <div class="dev-screen-info">
+    <div class="dev-badge">Screen <span id="sb-num">1</span> / 26</div>
+    <div class="dev-screen-title" id="sb-title">חשבון — Account</div>
+    <textarea class="dev-notes-area" id="sb-notes" rows="5" placeholder="Add notes..."></textarea>
+  </div>
+  <div class="dev-progress-section">
+    <div class="dev-section-label">All Screens</div>
+    <div id="sb-progress"></div>
+  </div>
+</div>
+
+<div class="shell">
+  <div class="app-col">
+    <div id="lang-switcher">
+      <button class="lang-btn" id="lang-he" onclick="setLang('he')" style="font-weight:700;color:var(--accent);">עב</button>
+      <span style="color:var(--line2);font-size:10px;">|</span>
+      <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+      <span style="color:var(--line2);font-size:10px;">|</span>
+      <button class="lang-btn" id="lang-ru" onclick="setLang('ru')">RU</button>
+    </div>
+
+<!-- ═══ SCREEN 01 ═══ -->
+<div class="screen on" id="screen1">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">01 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:4.5%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">Welcome</div>
+      <div class="ph-t">Let's get started</div>
+      <div class="ph-s">Bashert is a marriage-focused platform for the Jewish community. Every profile is reviewed before going live.</div>
+      <div style="margin-top:14px;padding:10px 14px;background:var(--bg3);border-radius:var(--r);text-align:center;font-size:13px;color:var(--t2);">
+        כבר יש לך חשבון? <a href="#" onclick="event.preventDefault();go(26)" style="color:var(--accent);font-weight:600;">התחבר/י ←</a>
+      </div>
+    </div>
+
+    <!-- Step A: Who is registering? -->
+    <div class="card" id="reg-step-a">
+      <div class="ct" style="margin-bottom:14px;"><span class="ctd" style="background:var(--accent);"></span>ההרשמה היא עבור:</div>
+      <div class="gcards">
+        <div class="gcard mc" id="reg-self" onclick="pickRegType('self')">
+          <div class="gc-ck">✓</div>
+          <div class="gc-em">🙋</div>
+          <div class="gc-t">בשבילי</div>
+          <div class="gc-s">אני רווק/ה ומחפש/ת זיווג</div>
+        </div>
+        <div class="gcard wc" id="reg-other" onclick="pickRegType('other')">
+          <div class="gc-ck">✓</div>
+          <div class="gc-em">🤝</div>
+          <div class="gc-t">בשביל מישהו אחר</div>
+          <div class="gc-s">אני עוזר/ת למישהו ליצור פרופיל</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step B-self: Gender -->
+    <div class="card" id="reg-gender-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--accent);"></span>אני…</div>
+      <div class="gcards">
+        <div class="gcard mc" id="gc-man" onclick="selG('man')"><div class="gc-ck">✓</div><div class="gc-em">👨</div><div class="gc-t">גבר</div><div class="gc-s">מחפש אישה</div></div>
+        <div class="gcard wc" id="gc-woman" onclick="selG('woman')"><div class="gc-ck">✓</div><div class="gc-em">👩</div><div class="gc-t">אישה</div><div class="gc-s">מחפשת גבר</div></div>
+      </div>
+    </div>
+
+    <!-- Step B-other: Role -->
+    <div class="card" id="reg-role-card" style="display:none;">
+      <div class="ct" style="margin-bottom:14px;"><span class="ctd" style="background:var(--gold);"></span>מה הקשר שלך לרווק/ה?</div>
+      <div class="gcards">
+        <div class="gcard mc" id="role-matchmaker" onclick="pickRole('matchmaker')">
+          <div class="gc-ck">✓</div><div class="gc-em">💼</div>
+          <div class="gc-t">אני שדכן/ית</div>
+          <div class="gc-s">מקצועי/ת רשום/ה בבשערת</div>
+        </div>
+        <div class="gcard wc" id="role-family" onclick="pickRole('family')">
+          <div class="gc-ck">✓</div><div class="gc-em">👨‍👩‍👦</div>
+          <div class="gc-t">משפחה או חבר/ה</div>
+          <div class="gc-s">אני עוזר/ת למישהו שאני מכיר/ה</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step C1: Single's gender (for someone else) -->
+    <div class="card" id="reg-single-gender-card" style="display:none;">
+      <div class="ct" style="margin-bottom:14px;"><span class="ctd" style="background:var(--gold);"></span>הרווק/ה הוא/היא:</div>
+      <div class="gcards">
+        <div class="gcard mc" id="gc-single-man" onclick="selSingleG('man')"><div class="gc-ck">✓</div><div class="gc-em">👨</div><div class="gc-t">גבר</div><div class="gc-s">מחפש אישה</div></div>
+        <div class="gcard wc" id="gc-single-woman" onclick="selSingleG('woman')"><div class="gc-ck">✓</div><div class="gc-em">👩</div><div class="gc-t">אישה</div><div class="gc-s">מחפשת גבר</div></div>
+      </div>
+    </div>
+
+    <!-- Step C2: Single's details -->
+    <div class="card" id="reg-single-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--gold);"></span><span id="single-details-label">Their details</span></div>
+      <div class="notice nb" style="margin-bottom:12px;">ניצור איתם קשר לאימות החשבון ולמילוי הפרופיל.</div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">שם פרטי <em>*</em></label><input class="fi" id="inp-single-fname" placeholder="שם פרטי"></div>
+        <div class="fg"><label class="lbl">שם משפחה <em>*</em></label><input class="fi" placeholder="שם משפחה"></div>
+      </div>
+      <div class="fg"><label class="lbl">כתובת אימייל <em>*</em></label><input class="fi" type="email" placeholder="כתובת האימייל שלהם — לאימות"></div>
+      <div class="fg"><label class="lbl">טלפון (אופציונלי)</label><input class="fi" type="tel" placeholder="לתזכורת WhatsApp"></div>
+    </div>
+
+    <!-- Step D: Your name -->
+    <div class="card" id="reg-name-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--gold);"></span>השם שלך</div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">שם פרטי <em>*</em></label><input class="fi" placeholder="שם פרטי"></div>
+        <div class="fg"><label class="lbl">שם משפחה <em>*</em></label><input class="fi" placeholder="פרטי — לשדכן/ית בלבד"><div class="hint">רק השדכן/ית שלך רואה זאת.</div></div>
+      </div>
+      <div class="fg"><label class="lbl">שם תצוגה <em>*</em></label><input class="fi" placeholder="לדוגמה: דוד מ."><div class="hint">מוצג בכרטיס הפרופיל שלך — שם פרטי + ראשית משפחה הוא הסטנדרט.</div></div>
+    </div>
+
+    <!-- Step E: Login credentials -->
+    <div class="card" id="reg-login-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--rose);"></span>יצירת חשבון</div>
+      <div class="fg"><label class="lbl">כתובת האימייל שלי <em>*</em></label><input class="fi" type="email" placeholder="כתובת האימייל שלך"></div>
+      <div class="fg"><label class="lbl">הסיסמה שלי <em>*</em></label><input class="fi" type="password" placeholder="בחר/י סיסמה">
+        <div class="pw-bar"><div class="pw-seg on"></div><div class="pw-seg on"></div><div class="pw-seg on"></div><div class="pw-seg"></div><span class="pw-lbl">טוב</span></div>
+      </div>
+      <div class="fg"><label class="lbl">אימות סיסמה <em>*</em></label><input class="fi" type="password" placeholder="חזור/י על הסיסמה"></div>
+    </div>
+
+    <!-- Agreements + Continue -->
+    <div class="card" id="reg-agree-card" style="display:none;">
+      <label class="chk" onclick="tChk(this)"><div class="chkb on">✓</div><div class="chk-l">אני מסכים/ה ל<a href="#">תנאי השימוש</a> ול<a href="#">מדיניות הפרטיות</a>. אני מבין/ה שבשערת מיועדת לנישואין.</div></label>
+      <label class="chk" onclick="tChk(this)"><div class="chkb"></div><div class="chk-l" id="jewish-confirm-lbl">אני מאשר/ת שאני יהודי/ה או נמצא/ת בתהליך גיור מוכר.</div></label>
+      <button class="btn btn-p btn-f" style="margin-top:10px;" onclick="go(2)">המשך ←</button>
+    </div>
+
+  </div></div>
+</div>
+
+
+
+<!-- ═══ SCREEN 02 ═══ -->
+<div class="screen" id="screen2">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">02 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:9%"></div></div>
+
+  <div class="pg" style="display:flex;align-items:center;">
+    <div class="pgc" style="width:100%;max-width:420px;margin:0 auto;text-align:center;">
+
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--abg);border:1px solid var(--abd);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;">✉️</div>
+
+      <div class="ph-t" style="margin-bottom:8px;">בדוק/י את תיבת הדואר</div>
+      <div class="ph-s" style="margin-bottom:12px;">שלחנו קוד בן 6 ספרות ל</div>
+
+      <div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;background:var(--surface);border:1px solid var(--line2);padding:6px 14px;border-radius:8px;font-size:13px;color:var(--accent);">
+        your@email.com
+      </div>
+
+      <div class="otp-row">
+        <input class="otp ok" maxlength="1" value="4">
+        <input class="otp ok" maxlength="1" value="8">
+        <input class="otp ok" maxlength="1" value="3">
+        <input class="otp ok" maxlength="1" value="7">
+        <input class="otp" maxlength="1" placeholder="·">
+        <input class="otp" maxlength="1" placeholder="·">
+      </div>
+
+      <button class="btn btn-p btn-f" onclick="go(4)">Verify &amp; המשך ←</button>
+      <button class="btn btn-g btn-f" onclick="go(1)">← שנה/י כתובת</button>
+      <div style="font-size:12px;color:var(--t3);">לא קיבלת? <a href="#" style="color:var(--accent);">שלח/י שוב</a></div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ═══ SCREEN 03 ═══ -->
+<div class="screen" id="screen3">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">03 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:13%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">הפרופיל שלך</div>
+      <div class="ph-t">הוסף/י תמונות</div>
+      <div class="ph-s">תמונות אמיתיות ועדכניות עוזרות לשדכנים ולמשתמשים להכיר אותך. כל התמונות נסקרות לפני פרסום.</div>
+    </div>
+
+    <!-- Main photo drop zone -->
+    <div class="drop" id="main-drop" onclick="triggerUpload('main-upload')">
+      <div class="drop-ic">📷</div>
+      <div class="drop-t">תמונה ראשית</div>
+      <div class="drop-s">לחץ/י לבחירת תמונה · JPG, PNG · עד 10MB</div>
+      <input type="file" id="main-upload" accept="image/*" style="display:none" onchange="previewPhoto(this,'main-drop')">
+    </div>
+
+    <!-- Additional photos -->
+    <div class="card" style="margin-top:14px;">
+      <div class="ct"><span class="ctd" style="background:var(--accent);"></span>תמונות נוספות (אופציונלי)</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div class="drop" style="padding:20px 10px;" onclick="triggerUpload('photo2')">
+          <div class="drop-ic" style="font-size:24px;">+</div>
+          <div class="drop-s">תמונה 2</div>
+          <input type="file" id="photo2" accept="image/*" style="display:none">
+        </div>
+        <div class="drop" style="padding:20px 10px;" onclick="triggerUpload('photo3')">
+          <div class="drop-ic" style="font-size:24px;">+</div>
+          <div class="drop-s">תמונה 3</div>
+          <input type="file" id="photo3" accept="image/*" style="display:none">
+        </div>
+        <div class="drop" style="padding:20px 10px;" onclick="triggerUpload('photo4')">
+          <div class="drop-ic" style="font-size:24px;">+</div>
+          <div class="drop-s">תמונה 4</div>
+          <input type="file" id="photo4" accept="image/*" style="display:none">
+        </div>
+      </div>
+    </div>
+
+    <div class="notice nb" style="margin-top:14px;">
+      תמונות לא יוצגו בגלישה הכללית — רק לשדכנים ולמשתמשים שאישרת/ה.
+    </div>
+
+  </div></div>
+
+  <div class="bot">
+    <span class="bot-hint">ניתן לדלג ולהוסיף מאוחר יותר</span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(2)">← חזור</button>
+      <button class="btn btn-p" onclick="go(4)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ═══ SCREEN 04 ═══ -->
+<div class="screen" id="screen4">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">04 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:17.4%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">לפני שמתחילים</div>
+      <div class="ph-t">הדליים שלך</div>
+      <div class="ph-s">כל תשובה ממוינת לאחד מארבעה דליים — מהאידיאלי ועד לקצה החיצוני של מה שתשקול/י.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 14px;border-radius:var(--r3);border:1.5px solid var(--b1d);background:var(--b1b);">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--b1);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(61,92,230,.3);">
+          <span style="font-family:'Noto Serif Hebrew',serif;font-size:26px;font-weight:900;color:#fff;">1</span>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:13px;font-weight:600;color:var(--b1);margin-bottom:3px;">אידיאלי</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.4;">הקריטריונים האידיאליים שלך</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 14px;border-radius:var(--r3);border:1.5px solid var(--b2d);background:var(--b2b);">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--b2);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(26,138,82,.3);">
+          <span style="font-family:'Noto Serif Hebrew',serif;font-size:26px;font-weight:900;color:#fff;">2</span>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:13px;font-weight:600;color:var(--b2);margin-bottom:3px;">מקובל</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.4;">מחוץ לאידיאל — עדיין מעניין</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 14px;border-radius:var(--r3);border:1.5px solid var(--b3d);background:var(--b3b);">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--b3);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(176,122,32,.3);">
+          <span style="font-family:'Noto Serif Hebrew',serif;font-size:26px;font-weight:900;color:#fff;">3</span>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:13px;font-weight:600;color:var(--b3);margin-bottom:3px;">בסבירות</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.4;">תשקול/י אם ימולץ בחום</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 14px;border-radius:var(--r3);border:1.5px solid var(--b4d);background:var(--b4b);">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--b4);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(201,48,96,.3);">
+          <span style="font-family:'Noto Serif Hebrew',serif;font-size:26px;font-weight:900;color:#fff;">4</span>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:13px;font-weight:600;color:var(--b4);margin-bottom:3px;">לא מתאים</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.4;">לא יוצג בגלישה בכלל</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-p btn-f" onclick="go(5)">נתחיל ←</button>
+
+  </div></div>
+</div>
+
+
+
+<!-- ═══ SCREEN 05 ═══ -->
+<div class="screen" id="screen5">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">05 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:21.7%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">העדפות — גיל</div>
+      <div class="ph-t">העדפות גיל</div>
+      <div class="ph-s">הגדר/י את הטווח ביחס לגילך — הטווחים מתעדכנים אוטומטית בכל יום הולדת.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="frow" style="align-items:center;gap:16px;margin:0;">
+        <div class="fg" style="margin:0;">
+          <label class="lbl">תאריך לידה <em>*</em></label>
+          <input class="fi" type="date" id="dob" style="width:190px;" oninput="onDobInput()">
+        </div>
+        <div style="background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;width:78px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,110,247,.35);flex-shrink:0;">
+          <div style="font-family:'Noto Serif Hebrew',serif;font-size:28px;font-weight:800;color:#fff;line-height:1;" id="ageDisp">34</div>
+          <div style="font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.65);">גיל</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUCKET 1 -->
+    <div class="ar ar1">
+      <div class="arh">
+        <div class="bn ar-bn-1"><span class="bn-num">1</span></div>
+        <div style="flex:1;">
+          <div class="bht" style="color:var(--b1);">דלי 1 — אידיאלי</div>
+        </div>
+      </div>
+      <div class="arb">
+        <div class="apick">
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים צעיר/ה יותר</div>
+            <div class="age-spinner">
+              <div class="vud"><button class="vub" onclick="aa('b1y',+1)">▲</button><button class="vub" onclick="aa('b1y',-1)">▼</button></div>
+              <div class="age-num-block"><div class="anum" id="b1y">0</div><div class="amin-age" id="b1y-age">age 34</div></div>
+            </div>
+          </div>
+          <div class="amid"><div class="ayouls">גילך</div><div class="ayou" id="ac1">34</div></div>
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים מבוגר/ת יותר</div>
+            <div class="age-spinner">
+              <div class="age-num-block"><div class="anum" id="b1o">2</div><div class="amin-age" id="b1o-age">age 36</div></div>
+              <div class="vud"><button class="vub" onclick="aa('b1o',+1)">▲</button><button class="vub" onclick="aa('b1o',-1)">▼</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="ares" id="b1r"><span class="ares-ages"></span><span class="ares-yrs"></span></div>
+      </div>
+    </div>
+
+    <!-- BUCKET 2 -->
+    <div class="ar ar2">
+      <div class="arh">
+        <div class="bn ar-bn-2"><span class="bn-num">2</span></div>
+        <div style="flex:1;"><div class="bht" style="color:var(--b2);">דלי 2 — מקובל</div></div>
+      </div>
+      <div class="arb">
+        <div class="apick">
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים צעיר/ה יותר</div>
+            <div class="age-spinner">
+              <div class="vud"><button class="vub" onclick="aa('b2y',+1)">▲</button><button class="vub" onclick="aa('b2y',-1)">▼</button></div>
+              <div class="age-num-block"><div class="anum" id="b2y">2</div><div class="amin-age" id="b2y-age">age 32</div></div>
+            </div>
+          </div>
+          <div class="amid"><div class="ayouls">גילך</div><div class="ayou" id="ac2">34</div></div>
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים מבוגר/ת יותר</div>
+            <div class="age-spinner">
+              <div class="age-num-block"><div class="anum" id="b2o">4</div><div class="amin-age" id="b2o-age">age 38</div></div>
+              <div class="vud"><button class="vub" onclick="aa('b2o',+1)">▲</button><button class="vub" onclick="aa('b2o',-1)">▼</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="ares" id="b2r"><span class="ares-ages">Ages 32–33 and 37–38</span><span class="ares-yrs">3–4 years younger · 3–4 years older</span></div>
+      </div>
+    </div>
+
+    <!-- BUCKET 3 -->
+    <div class="ar ar3">
+      <div class="arh">
+        <div class="bn ar-bn-3"><span class="bn-num">3</span></div>
+        <div style="flex:1;"><div class="bht" style="color:var(--b3);">דלי 3 — בסבירות</div></div>
+      </div>
+      <div class="arb">
+        <div class="apick">
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים צעיר/ה יותר</div>
+            <div class="age-spinner">
+              <div class="vud"><button class="vub" onclick="aa('b3y',+1)">▲</button><button class="vub" onclick="aa('b3y',-1)">▼</button></div>
+              <div class="age-num-block"><div class="anum" id="b3y">4</div><div class="amin-age" id="b3y-age">age 30</div></div>
+            </div>
+          </div>
+          <div class="amid"><div class="ayouls">גילך</div><div class="ayou" id="ac3">34</div></div>
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים מבוגר/ת יותר</div>
+            <div class="age-spinner">
+              <div class="age-num-block"><div class="anum" id="b3o">6</div><div class="amin-age" id="b3o-age">age 40</div></div>
+              <div class="vud"><button class="vub" onclick="aa('b3o',+1)">▲</button><button class="vub" onclick="aa('b3o',-1)">▼</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="ares" id="b3r"><span class="ares-ages">Ages 30–31 and 39–40</span><span class="ares-yrs">Absolute outer range</span></div>
+      </div>
+    </div>
+
+    <!-- BUCKET 4 -->
+    <div class="ar ar4">
+      <div class="arh">
+        <div class="bn ar-bn-4"><span class="bn-num">4</span></div>
+        <div style="flex:1;"><div class="bht" style="color:var(--b4);">דלי 4 — לא מוצג</div></div>
+      </div>
+      <div class="arb">
+        <div class="ares" id="b4r">
+          <span class="ares-ages">Ages 18–29 and ages 41–100</span>
+          <span class="ares-yrs">מחוץ לטווח הבסבירות — לא יוצג</span>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+
+  <div class="bot">
+    <span class="bot-hint">מתעדכן אוטומטית בכל יום הולדת</span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(4)">← חזור</button>
+      <button class="btn btn-p" onclick="go(6)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ═══ SCREEN 06 ═══ -->
+<div class="screen" id="screen6">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">06 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:26.1%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Location</div>
+      <div class="ph-t">מיקום</div>
+      <div class="ph-s">הגדר/י את מיקומך והיכן תשקול/י לגור</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 6 — Location</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(5)">← חזור</button>
+      <button class="btn btn-p" onclick="go(7)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 07 ═══ -->
+<div class="screen" id="screen7">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">07 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:30.4%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Family Status</div>
+      <div class="ph-t">משפחתי</div>
+      <div class="ph-s">מה המצב המשפחתי שלך?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 7 — Family Status</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(6)">← חזור</button>
+      <button class="btn btn-p" onclick="go(8)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 08 ═══ -->
+<div class="screen" id="screen8">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">08 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:34.8%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Children</div>
+      <div class="ph-t">ילדים</div>
+      <div class="ph-s">האם יש לך ילדים? האם את/ה מעוניין/ת בילדים?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 8 — Children</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(7)">← חזור</button>
+      <button class="btn btn-p" onclick="go(9)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 09 ═══ -->
+<div class="screen" id="screen9">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">09 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:39.1%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Community</div>
+      <div class="ph-t">קהילה</div>
+      <div class="ph-s">לאיזו קהילה יהודית את/ה שייך/ת?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 9 — Community</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(8)">← חזור</button>
+      <button class="btn btn-p" onclick="go(10)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 10 ═══ -->
+<div class="screen" id="screen10">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">10 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:43.5%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Language</div>
+      <div class="ph-t">שפה</div>
+      <div class="ph-s">אילו שפות את/ה מדבר/ת?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 10 — Language</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(9)">← חזור</button>
+      <button class="btn btn-p" onclick="go(11)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 11 ═══ -->
+<div class="screen" id="screen11">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">11 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:47.8%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Shabbat</div>
+      <div class="ph-t">שבת</div>
+      <div class="ph-s">כיצד את/ה שומר/ת שבת?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 11 — Shabbat</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(10)">← חזור</button>
+      <button class="btn btn-p" onclick="go(12)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 12 ═══ -->
+<div class="screen" id="screen12">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">12 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:52.2%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Kashrut</div>
+      <div class="ph-t">כשרות</div>
+      <div class="ph-s">כיצד את/ה שומר/ת כשרות?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 12 — Kashrut</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(11)">← חזור</button>
+      <button class="btn btn-p" onclick="go(13)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 13 ═══ -->
+<div class="screen" id="screen13">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">13 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:56.5%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Exactly — Hard Lines</div>
+      <div class="ph-t">exactly</div>
+      <div class="ph-s">יש קווים אדומים שאי אפשר לחצות?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 13 — Exactly — Hard Lines</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(12)">← חזור</button>
+      <button class="btn btn-p" onclick="go(14)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 14 ═══ -->
+<div class="screen" id="screen14">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">14 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:60.9%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Media and Lifestyle</div>
+      <div class="ph-t">מדיה</div>
+      <div class="ph-s">כיצד את/ה משתמש/ת במדיה?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 14 — Media and Lifestyle</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(13)">← חזור</button>
+      <button class="btn btn-p" onclick="go(15)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 15 ═══ -->
+<div class="screen" id="screen15">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">15 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:65.2%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Torah Learning</div>
+      <div class="ph-t">תורה</div>
+      <div class="ph-s">מה מקומה של לימוד התורה בחייך?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 15 — Torah Learning</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(14)">← חזור</button>
+      <button class="btn btn-p" onclick="go(16)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 16 ═══ -->
+<div class="screen" id="screen16">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">16 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:69.6%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Community Affiliation</div>
+      <div class="ph-t">השתייכות</div>
+      <div class="ph-s">לאיזו עדה את/ה שייך/ת?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 16 — Community Affiliation</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(15)">← חזור</button>
+      <button class="btn btn-p" onclick="go(17)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 17 ═══ -->
+<div class="screen" id="screen17">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">17 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:73.9%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Algorithm Complete!</div>
+      <div class="ph-t">הושלם!</div>
+      <div class="ph-s">כל המידע לצורך ההתאמה הושלם. כעת נמלא פרטים נוספים.</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 17 — Algorithm Complete!</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(16)">← חזור</button>
+      <button class="btn btn-p" onclick="go(18)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 18 ═══ -->
+<div class="screen" id="screen18">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">18 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:78.3%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Education and Career</div>
+      <div class="ph-t">השכלה</div>
+      <div class="ph-s">מה רמת ההשכלה שלך ומה את/ה עושה לפרנסה?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 18 — Education and Career</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(17)">← חזור</button>
+      <button class="btn btn-p" onclick="go(19)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 19 ═══ -->
+<div class="screen" id="screen19">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">19 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:82.6%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Personality</div>
+      <div class="ph-t">אישיות</div>
+      <div class="ph-s">תאר/י את עצמך — מה מאפיין אותך?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 19 — Personality</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(18)">← חזור</button>
+      <button class="btn btn-p" onclick="go(20)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 20 ═══ -->
+<div class="screen" id="screen20">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">20 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:87.0%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Looking For</div>
+      <div class="ph-t">מחפש/ת</div>
+      <div class="ph-s">מה את/ה מחפש/ת בשידוך?</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 20 — Looking For</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(19)">← חזור</button>
+      <button class="btn btn-p" onclick="go(21)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 21 ═══ -->
+<div class="screen" id="screen21">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">21 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:91.3%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Additional Details</div>
+      <div class="ph-t">פרטים</div>
+      <div class="ph-s">מראה חיצוני ופרטים נוספים לפרופיל.</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 21 — Additional Details</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(20)">← חזור</button>
+      <button class="btn btn-p" onclick="go(22)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 22 ═══ -->
+<div class="screen" id="screen22">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">22 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:95.7%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">References</div>
+      <div class="ph-t">ממליצים</div>
+      <div class="ph-s">הוסף/י ממליצים שיאמתו את פרופילך.</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 22 — References</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(21)">← חזור</button>
+      <button class="btn btn-p" onclick="go(23)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 23 ═══ -->
+<div class="screen" id="screen23">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">23 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:100%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Complete!</div>
+      <div class="ph-t">סיום</div>
+      <div class="ph-s">הפרופיל שלך מוכן לבדיקה. ברוך/ה הבא/ה לבשערת!</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 23 — Complete!</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(22)">← חזור</button>
+      <button class="btn btn-p" onclick="go(24)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 24 ═══ -->
+<div class="screen" id="screen24">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">24 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:100%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">Browse</div>
+      <div class="ph-t">גלישה</div>
+      <div class="ph-s">גלוש/י בהצעות שידוך</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 24 — Browse</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(23)">← חזור</button>
+      <button class="btn btn-p" onclick="go(25)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN 25 ═══ -->
+<div class="screen" id="screen25">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">25 / 25</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:100%"></div></div>
+  <div class="pg"><div class="pgc">
+    <div class="ph">
+      <div class="ph-ey">My Profiles</div>
+      <div class="ph-t">הפרופילים שלי</div>
+      <div class="ph-s">כל הפרופילים שנוצרו בחשבונך</div>
+    </div>
+    <div class="card" style="padding:40px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🚧</div>
+      <div style="font-family:'Noto Serif Hebrew',serif;font-size:16px;color:var(--t1);margin-bottom:6px;">מסך זה בבנייה</div>
+      <div style="font-size:12px;color:var(--t3);">Screen 25 — My Profiles</div>
+    </div>
+  </div></div>
+  <div class="bot">
+    <span class="bot-hint"></span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(24)">← חזור</button>
+      <button class="btn btn-p" onclick="go(26)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+    <div class="screen" id="screen26">
+      <div class="tb"><div class="logo">בשערת <span class="logo-he">Bashert</span></div><div class="tsp"></div></div>
+      <div class="pstrip"><div class="pfill" style="width:0%"></div></div>
+      <div class="pg" style="display:flex;align-items:center;">
+        <div class="pgc" style="width:100%;max-width:400px;margin:0 auto;">
+          <div class="ph">
+            <div class="ph-ey">Welcome back</div>
+            <div class="ph-t">התחבר/י</div>
+            <div class="ph-s">יש לך כבר חשבון? התחבר/י כאן.</div>
+          </div>
+          <div class="card">
+            <div class="fg"><label class="lbl">כתובת אימייל <em>*</em></label><input class="fi" type="email" placeholder="האימייל שלך"></div>
+            <div class="fg"><label class="lbl">סיסמה <em>*</em></label><input class="fi" type="password" placeholder="הסיסמה שלך"></div>
+            <div style="text-align:left;margin-bottom:14px;"><a href="#" style="font-size:12px;color:var(--accent);">שכחת סיסמה?</a></div>
+            <button class="btn btn-p btn-f" onclick="go(1)">התחבר/י ←</button>
+          </div>
+          <div style="text-align:center;font-size:13px;color:var(--t2);margin-top:10px;">
+            אין לך חשבון? <a href="#" onclick="event.preventDefault();go(1)" style="color:var(--accent);font-weight:600;">הירשם/י ←</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SCREEN_NOTES = {"1": {"title": "חשבון — Account", "notes": "Three registration paths: self, matchmaker, or family/friend. Gender determines the flow. Login card appears after name is filled."}, "2": {"title": "אימות אימייל — Email Verification", "notes": "6-digit OTP. Auto-advances focus. Future: Supabase Auth."}, "3": {"title": "תמונה — Photo Upload", "notes": "Main photo required; 3 optional. Private by default. Future: AI moderation."}, "4": {"title": "דליים — Bucket System", "notes": "Explains 4-bucket system. Bucket 4 = hard wall, never shown. Informational only."}, "5": {"title": "גיל — Age Preferences", "notes": "Cascading spinners: B2 extends beyond B1, B3 beyond B2. B4 auto-calculated."}, "6": {"title": "מיקום — Location", "notes": "Current city + relocation willingness. Future: Google Places autocomplete."}, "7": {"title": "משפחתי — Family Status", "notes": "Never married / divorced / widowed. Divorced/widowed leads to children screen."}, "8": {"title": "ילדים — Children", "notes": "Existing children, custody, desired future children. Conditional on screen 7."}, "9": {"title": "קהילה — Community", "notes": "Jewish affiliation from Haredi to secular. Primary matching dimension."}, "10": {"title": "שפה — Language", "notes": "Primary + additional languages. Hebrew default for Israeli market."}, "11": {"title": "שבת — Shabbat", "notes": "Level of Shabbat observance. Core religious compatibility dimension."}, "12": {"title": "כשרות — Kashrut", "notes": "Home kitchen vs. eating out — separate questions."}, "13": {"title": "exactly — Hard Lines", "notes": "Deal-breakers overriding buckets. Bucket 4 on any item = never shown."}, "14": {"title": "מדיה — Media & Lifestyle", "notes": "Internet, smartphone, TV. Important for religious communities."}, "15": {"title": "תורה — Torah Learning", "notes": "Daily learning, kollel vs. working. Critical for Haredi and Dati Leumi."}, "16": {"title": "השתייכות — Affiliation", "notes": "Specific eda: Ashkenazi/Sephardi/Mizrahi etc. Cultural matching beyond religious level."}, "17": {"title": "הושלם! — Algorithm Done", "notes": "End of matching inputs. Everything after = profile enrichment only."}, "18": {"title": "השכלה — Education", "notes": "Degree, field, occupation. Profile display only, not in algorithm."}, "19": {"title": "אישיות — Personality", "notes": "Tag-based, curated list, no free text. Pending: merge with screen 20."}, "20": {"title": "מחפש/ת — Looking For", "notes": "Tag-based, no free text. Pending: merge with screen 19."}, "21": {"title": "פרטים — Physical Details", "notes": "Height, build, hair, eyes. Profile only, not in algorithm."}, "22": {"title": "ממליצים — References", "notes": "2-3 references confirmed by email/WhatsApp. Required before going live."}, "23": {"title": "סיום — Complete", "notes": "Profile submitted for review. Future: email notification on approval."}, "24": {"title": "גלישה — Browse", "notes": "Browse filtered by bucket scores. Pending: full redesign."}, "25": {"title": "הפרופילים שלי — My Profiles", "notes": "Matchmakers: managed profiles. Singles: own profile + status. Pending."}, "26": {"title": "התחברות — Login", "notes": "Login for existing users. Accessible from screen 1 'already have an account' link."}};
+const LABELS = {"1": "חשבון", "2": "אימייל", "3": "תמונה", "4": "דליים", "5": "גיל", "6": "מיקום", "7": "משפחתי", "8": "ילדים", "9": "קהילה", "10": "שפה", "11": "שבת", "12": "כשרות", "13": "exactly", "14": "מדיה", "15": "תורה", "16": "השתייכות", "17": "הושלם!", "18": "השכלה", "19": "אישיות", "20": "מחפש/ת", "21": "פרטים", "22": "ממליצים", "23": "סיום", "24": "גלישה", "25": "הפרופילים שלי", "26": "התחברות"};
+
+let _lang = 'he';
+const TOTAL = 26;
+
+function go(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  const target = document.getElementById('screen' + n);
+  if (!target) return;
+  target.classList.add('on');
+  injectFooter(target, n);
+  updateDevPanel(n);
+  const fn = window['initScreen' + n];
+  if (typeof fn === 'function') fn();
+}
+
+function injectFooter(screen, n) {
+  const ex = screen.querySelector('.screen-footer');
+  if (ex) ex.remove();
+  const f = document.createElement('div');
+  f.className = 'screen-footer';
+  const prev = Math.max(1, n - 1);
+  const next = Math.min(TOTAL, n + 1);
+  f.innerHTML = '<button class="sf-btn' + (n <= 1 ? ' disabled' : '') + '" onclick="go(' + prev + ')">&#8592;</button><span class="screen-footer-label">' + String(n).padStart(2,'0') + ' / ' + TOTAL + '</span><button class="sf-btn' + (n >= TOTAL ? ' disabled' : '') + '" onclick="go(' + next + ')">&#8594;</button>';
+  screen.appendChild(f);
+}
+
+function updateDevPanel(n) {
+  const nd = SCREEN_NOTES[String(n)] || {};
+  const numEl = document.getElementById('sb-num');
+  const titleEl = document.getElementById('sb-title');
+  const notesEl = document.getElementById('sb-notes');
+  if (numEl) numEl.textContent = n;
+  if (titleEl) titleEl.textContent = nd.title || '';
+  if (notesEl) notesEl.value = nd.notes || '';
+  document.querySelectorAll('.sp-item').forEach(function(el, idx) {
+    el.classList.remove('active', 'done');
+    if (idx + 1 < n) el.classList.add('done');
+    if (idx + 1 === n) el.classList.add('active');
+  });
+  const active = document.getElementById('sp-' + n);
+  if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function buildProgress() {
+  const c = document.getElementById('sb-progress');
+  if (!c) return;
+  let h = '';
+  for (let i = 1; i <= TOTAL; i++) {
+    h += '<div class="sp-item" id="sp-' + i + '" onclick="go(' + i + ')"><div class="sp-dot"></div><div class="sp-label">' + i + '· ' + (LABELS[String(i)] || '') + '</div></div>';
+  }
+  c.innerHTML = h;
+}
+
+function toggleDev() {
+  document.getElementById('dev-panel').classList.toggle('open');
+  document.getElementById('dev-toggle').classList.toggle('open');
+}
+
+function setLang(lang) {
+  _lang = lang;
+  document.documentElement.lang = lang === 'he' ? 'he' : 'en';
+  document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
+  ['he','en','ru'].forEach(function(l) {
+    const b = document.getElementById('lang-' + l);
+    if (b) {
+      b.style.fontWeight = l === lang ? '700' : '400';
+      b.style.color = l === lang ? 'var(--accent)' : '';
+    }
+  });
+}
+
+function tChk(el) {
+  const b = el.querySelector('.chkb');
+  if (!b) return;
+  b.classList.toggle('on');
+  b.textContent = b.classList.contains('on') ? '✓' : '';
+}
+
+function show(id) { const el = document.getElementById(id); if (el) el.style.display = ''; }
+function hide(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+
+function pickRegType(type) {
+  const s = document.getElementById('reg-self'), o = document.getElementById('reg-other');
+  if (type === 'self') {
+    s.classList.add('sm'); o.classList.remove('sw');
+    show('reg-gender-card'); hide('reg-role-card'); hide('reg-single-gender-card'); hide('reg-single-card');
+  } else {
+    o.classList.add('sw'); s.classList.remove('sm');
+    show('reg-role-card'); hide('reg-gender-card'); hide('reg-name-card'); hide('reg-login-card'); hide('reg-agree-card');
+  }
+}
+function pickRole(role) {
+  document.getElementById('role-matchmaker').classList.toggle('sm', role === 'matchmaker');
+  document.getElementById('role-family').classList.toggle('sw', role === 'family');
+  show('reg-single-gender-card');
+}
+function selG(g) {
+  document.getElementById('gc-man').classList.toggle('sm', g === 'man');
+  document.getElementById('gc-woman').classList.toggle('sw', g === 'woman');
+  show('reg-name-card'); show('reg-login-card'); show('reg-agree-card');
+}
+function selSingleG(g) {
+  document.getElementById('gc-single-man').classList.toggle('sm', g === 'man');
+  document.getElementById('gc-single-woman').classList.toggle('sw', g === 'woman');
+  show('reg-single-card'); show('reg-login-card'); show('reg-agree-card');
+}
+function triggerUpload(id) { const el = document.getElementById(id); if (el) el.click(); }
+function previewPhoto(input, dropId) {
+  if (!input.files || !input.files[0]) return;
+  const r = new FileReader();
+  r.onload = function(e) {
+    const d = document.getElementById(dropId);
+    if (!d) return;
+    d.style.backgroundImage = 'url(' + e.target.result + ')';
+    d.style.backgroundSize = 'cover';
+    d.style.backgroundPosition = 'center';
+    ['drop-ic','drop-t','drop-s'].forEach(function(c) { const el = d.querySelector('.' + c); if (el) el.style.display = 'none'; });
+  };
+  r.readAsDataURL(input.files[0]);
+}
+let _age5 = { myAge: 34, b1y:0, b1o:2, b2y:2, b2o:4, b3y:4, b3o:6 };
+function onDobInput() {
+  const el = document.getElementById('dob');
+  if (!el || !el.value) return;
+  const today = new Date(), birth = new Date(el.value);
+  let age = today.getFullYear() - birth.getFullYear();
+  if (today.getMonth() - birth.getMonth() < 0 || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+  _age5.myAge = Math.max(18, Math.min(120, age));
+  updateAgeDisplays();
+}
+function aa(field, delta) {
+  _age5[field] = Math.max(0, _age5[field] + delta);
+  if (field==='b1y' && _age5.b2y < _age5.b1y) _age5.b2y = _age5.b1y;
+  if (field==='b2y' && _age5.b3y < _age5.b2y) _age5.b3y = _age5.b2y;
+  if (field==='b1o' && _age5.b2o < _age5.b1o) _age5.b2o = _age5.b1o;
+  if (field==='b2o' && _age5.b3o < _age5.b2o) _age5.b3o = _age5.b2o;
+  updateAgeDisplays();
+}
+function updateAgeDisplays() {
+  const a = _age5.myAge;
+  ['ac1','ac2','ac3'].forEach(function(id) { const el = document.getElementById(id); if (el) el.textContent = a; });
+  const ad = document.getElementById('ageDisp'); if (ad) ad.textContent = a;
+  ['b1y','b1o','b2y','b2o','b3y','b3o'].forEach(function(f) {
+    const el = document.getElementById(f); if (el) el.textContent = _age5[f];
+    const ael = document.getElementById(f + '-age');
+    if (ael) ael.textContent = 'age ' + (a + (f.endsWith('y') ? -_age5[f] : _age5[f]));
+  });
+  setAres('b1r', 'Ages ' + (a-_age5.b1y) + '–' + (a+_age5.b1o), _age5.b1y + ' yrs younger · ' + _age5.b1o + ' yrs older');
+  setAres('b2r', 'Ages ' + (a-_age5.b2y) + '–' + (a-_age5.b1y-1) + ' and ' + (a+_age5.b1o+1) + '–' + (a+_age5.b2o), '');
+  setAres('b3r', 'Ages ' + (a-_age5.b3y) + '–' + (a-_age5.b2y-1) + ' and ' + (a+_age5.b2o+1) + '–' + (a+_age5.b3o), 'Absolute outer range');
+  setAres('b4r', 'Ages 18–' + (a-_age5.b3y-1) + ' and ' + (a+_age5.b3o+1) + '+', 'לא יוצג');
+}
+function setAres(id, ages, yrs) {
+  const el = document.getElementById(id); if (!el) return;
+  const a = el.querySelector('.ares-ages'), y = el.querySelector('.ares-yrs');
+  if (a) a.textContent = ages; if (y) y.textContent = yrs;
+}
+function initScreen1() {
+  ['reg-gender-card','reg-role-card','reg-single-gender-card','reg-single-card','reg-name-card','reg-login-card','reg-agree-card']
+    .forEach(function(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+}
+function initScreen5() { updateAgeDisplays(); }
+
+buildProgress();
+go(1);
+</script>
+</body>
+</html>
