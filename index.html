@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>בשערת — הרשמה</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@300;400;500;600;700;800;900&family=Noto+Serif+Hebrew:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<!-- Language switcher -->
+<div id="lang-switcher" style="position:fixed;top:8px;right:10px;z-index:10000;display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--line2);border-radius:20px;padding:3px 8px;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+  <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+  <span style="color:var(--line2);font-size:10px;">|</span>
+  <button class="lang-btn" id="lang-he" onclick="setLang('he')" style="font-weight:700;color:var(--accent);">עב</button>
+  <span style="color:var(--line2);font-size:10px;">|</span>
+  <button class="lang-btn" id="lang-ru" onclick="setLang('ru')">РУ</button>
+</div>
+
+<!-- Proto nav bar -->
+<div class="proto">
+  <span class="plbl">Bashert</span><div class="pdiv"></div>
+  <button class="pb on" id="pb1"  onclick="go(1)">1·חשבון</button>
+  <button class="pb"    id="pb2"  onclick="go(2)">2·אימייל</button>
+  <button class="pb"    id="pb3"  onclick="go(3)">3·תמונה</button>
+  <button class="pb"    id="pb4"  onclick="go(4)">4·דליים</button>
+  <button class="pb"    id="pb5"  onclick="go(5)">5·גיל</button>
+  <button class="pb"    id="pb6"  onclick="go(6)">6·מיקום</button>
+  <button class="pb"    id="pb7"  onclick="go(7)">7·משפחתי</button>
+  <button class="pb"    id="pb8"  onclick="go(8)">8·ילדים</button>
+  <button class="pb"    id="pb9"  onclick="go(9)">9·קהילה</button>
+  <button class="pb"    id="pb10" onclick="go(10)">10·שפה</button>
+  <button class="pb"    id="pb11" onclick="go(11)">11·שבת</button>
+  <button class="pb"    id="pb12" onclick="go(12)">12·כשרות</button>
+  <button class="pb"    id="pb13" onclick="go(13)">13·exactly</button>
+  <button class="pb"    id="pb14" onclick="go(14)">14·מדיה</button>
+  <button class="pb"    id="pb15" onclick="go(15)">15·תורה</button>
+  <button class="pb"    id="pb16" onclick="go(16)">16·השתייכות</button>
+  <div class="pdiv"></div>
+  <button class="pb"    id="pb17" onclick="go(17)">17·הושלם!</button>
+  <button class="pb"    id="pb18" onclick="go(18)">18·השכלה</button>
+  <button class="pb"    id="pb19" onclick="go(19)">19·אישיות</button>
+  <button class="pb"    id="pb20" onclick="go(20)">20·מחפש/ת</button>
+  <button class="pb"    id="pb21" onclick="go(21)">21·פרטים</button>
+  <div class="pdiv"></div>
+  <button class="pb"    id="pb22" onclick="go(22)">22·ממליצים</button>
+  <button class="pb"    id="pb23" onclick="go(23)">23·סיום</button>
+  <div class="pdiv"></div>
+  <button class="pb"    id="pb24" onclick="go(24)">24·גלישה</button>
+  <button class="pb"    id="pb25" onclick="go(25)">25·הפרופילים שלי</button>
+</div>
+
+<!-- Screen mount point — screens are loaded here dynamically -->
+<div id="screen-mount"></div>
+
+<script>
+/* ═══════════════════════════════════
+   SCREEN ROUTER
+   Each screen lives in its own file: screens/screen-01.html etc.
+   go(n) fetches the file, injects it, runs its init function.
+═══════════════════════════════════ */
+
+let _currentScreen = 0;
+let _lang = 'he';
+const _screenCache = {};
+
+async function go(n) {
+  const padded = String(n).padStart(2, '0');
+  const file = `screens/screen-${padded}.html`;
+
+  // Update proto bar
+  document.querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
+  const pb = document.getElementById(`pb${n}`);
+  if (pb) pb.classList.add('on');
+
+  // Fetch & cache
+  if (!_screenCache[n]) {
+    try {
+      const res = await fetch(file);
+      if (!res.ok) throw new Error(`Screen ${n} not found`);
+      _screenCache[n] = await res.text();
+    } catch(e) {
+      console.warn(e);
+      _screenCache[n] = `<div class="screen on" id="screen${n}">
+        <div class="tb"><div class="logo">בשערת</div><div class="tsp"></div><span class="sbadge">${padded} / 25</span></div>
+        <div class="pg"><div class="pgc" style="padding-top:60px;text-align:center;color:var(--t3);">
+          <div style="font-size:48px;margin-bottom:16px;">🚧</div>
+          <div style="font-family:'Noto Serif Hebrew',serif;font-size:20px;color:var(--t1);margin-bottom:8px;">מסך ${n}</div>
+          <div style="font-size:13px;">עמוד זה עדיין בבנייה</div>
+        </div></div>
+      </div>`;
+    }
+  }
+
+  // Inject HTML
+  const mount = document.getElementById('screen-mount');
+  mount.innerHTML = _screenCache[n];
+
+  // Run any init script the screen exports
+  const initFn = window[`initScreen${n}`];
+  if (typeof initFn === 'function') initFn();
+
+  _currentScreen = n;
+}
+
+/* ═══════════════════════════════════
+   i18n — MULTI-LANGUAGE SUPPORT
+═══════════════════════════════════ */
+const STRINGS = {
+  en: {
+    appName:'Bashert',next:'המשך ←',back:'← חזור',save:'Save',
+    s1_title:"Let's get started",s1_sub:"Bashert is a marriage-focused platform for the Jewish community.",
+    s1_forSelf:'For Myself',s1_forSelf_sub:'I am a single looking for a match',
+    s1_forOther:'For Someone Else',s1_forOther_sub:'I am helping a single create their profile',
+    s1_matchmaker:'I am a Matchmaker',s1_matchmaker_sub:'Registered professional on Bashert',
+    s1_family:'Family or Friend',s1_family_sub:"I'm helping someone I know",
+    s1_man:'I am a Man',s1_man_sub:'Looking for a woman',
+    s1_woman:'I am a Woman',s1_woman_sub:'Looking for a man',
+    s1_fname:'First name',s1_lname:'Last name',s1_email:'Email address',
+    s1_phone:'Phone (optional)',s1_myEmail:'My email address',
+    s1_myPass:'My password',s1_confirmPass:'Confirm my password',
+    s1_jewish:'I confirm I am Jewish or in a recognised conversion process.',
+    s1_jewish_other_he:'I confirm that he is Jewish or in a recognised conversion process.',
+    s1_jewish_other_she:'I confirm that she is Jewish or in a recognised conversion process.',
+    b1_name:'אידיאלי',b2_name:'טוב',b3_name:'בסבירות',b4_name:'לא',
+  },
+  he: {
+    appName:'בשערת',next:'המשך →',back:'← חזור',save:'שמור',
+    s1_title:'נתחיל',s1_sub:'בשערת היא פלטפורמת שידוכים לקהילה היהודית.',
+    s1_forSelf:'בשבילי',s1_forSelf_sub:'אני רווק/ה ומחפש/ת זיווג',
+    s1_forOther:'בשביל מישהו אחר',s1_forOther_sub:'אני עוזר/ת למישהו ליצור פרופיל',
+    s1_matchmaker:'אני שדכן/ית',s1_matchmaker_sub:'מקצועי/ת רשום/ה בבשערת',
+    s1_family:'משפחה או חבר/ה',s1_family_sub:'אני עוזר/ת למישהו שאני מכיר/ה',
+    s1_man:'אני גבר',s1_man_sub:'מחפש אישה',
+    s1_woman:'אני אישה',s1_woman_sub:'מחפשת גבר',
+    s1_fname:'שם פרטי',s1_lname:'שם משפחה',s1_email:'כתובת אימייל',
+    s1_phone:'טלפון (אופציונלי)',s1_myEmail:'כתובת האימייל שלי',
+    s1_myPass:'הסיסמה שלי',s1_confirmPass:'אימות סיסמה',
+    s1_jewish:'אני מאשר/ת שאני יהודי/ה או נמצא/ת בתהליך גיור מוכר.',
+    s1_jewish_other_he:'אני מאשר/ת שהוא יהודי או נמצא בתהליך גיור מוכר.',
+    s1_jewish_other_she:'אני מאשר/ת שהיא יהודייה או נמצאת בתהליך גיור מוכר.',
+    b1_name:'אידיאלי',b2_name:'טוב',b3_name:'בסבירות',b4_name:'לא',
+  },
+  ru: {
+    appName:'Башерт',next:'Далее →',back:'← Назад',save:'Сохранить',
+    s1_title:'Начнём',s1_sub:'Башерт — платформа для знакомств с целью создания семьи в еврейской общине.',
+    s1_forSelf:'Для себя',s1_forSelf_sub:'Я ищу пару',
+    s1_forOther:'Для другого человека',s1_forOther_sub:'Я помогаю кому-то создать профиль',
+    s1_matchmaker:'Я шадхан/шадхенит',s1_matchmaker_sub:'Зарегистрированный специалист',
+    s1_family:'Родственник или друг',s1_family_sub:'Я помогаю знакомому',
+    s1_man:'Я мужчина',s1_man_sub:'Ищу женщину',
+    s1_woman:'Я женщина',s1_woman_sub:'Ищу мужчину',
+    s1_fname:'Имя',s1_lname:'Фамилия',s1_email:'Электронная почта',
+    s1_phone:'Телефон (необязательно)',s1_myEmail:'Моя электронная почта',
+    s1_myPass:'Мой пароль',s1_confirmPass:'Подтвердите пароль',
+    s1_jewish:'Я подтверждаю, что я еврей/еврейка или прохожу признанный гиюр.',
+    s1_jewish_other_he:'Я подтверждаю, что он еврей или проходит признанный гиюр.',
+    s1_jewish_other_she:'Я подтверждаю, что она еврейка или проходит признанный гиюр.',
+    b1_name:'Идеально',b2_name:'Хорошо',b3_name:'Возможно',b4_name:'Нет',
+  }
+};
+
+function t(key) { return (STRINGS[_lang] && STRINGS[_lang][key]) || STRINGS['he'][key] || key; }
+
+function setLang(lang) {
+  _lang = lang;
+  document.documentElement.lang = lang === 'he' ? 'he' : 'en';
+  document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
+  document.getElementById('lang-en').style.fontWeight = lang==='en'?'700':'400';
+  document.getElementById('lang-en').style.color = lang==='en'?'var(--accent)':'';
+  document.getElementById('lang-he').style.fontWeight = lang==='he'?'700':'400';
+  document.getElementById('lang-he').style.color = lang==='he'?'var(--accent)':'';
+  document.getElementById('lang-ru').style.fontWeight = lang==='ru'?'700':'400';
+  document.getElementById('lang-ru').style.color = lang==='ru'?'var(--accent)':'';
+  // Invalidate cache so screens re-render with new language
+  Object.keys(_screenCache).forEach(k => delete _screenCache[k]);
+  if (_currentScreen) go(_currentScreen);
+}
+
+/* ═══════════════════════════════════
+   SHARED UTILITIES used by screens
+═══════════════════════════════════ */
+function tChk(el) {
+  const box = el.querySelector('.chkb');
+  if (box) box.classList.toggle('on');
+  if (box && box.classList.contains('on')) box.textContent = '✓';
+  else if (box) box.textContent = '';
+}
+
+/* Boot: load screen 1 */
+go(1);
+</script>
+</body>
+</html>
