@@ -1,0 +1,83 @@
+<div class="screen on" id="screen3">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">03 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:13%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">הפרופיל שלך</div>
+      <div class="ph-t">הוסף/י תמונות</div>
+      <div class="ph-s">תמונות אמיתיות ועדכניות עוזרות לשדכנים ולמשתמשים להכיר אותך. כל התמונות נסקרות לפני פרסום.</div>
+    </div>
+
+    <!-- Main photo drop zone -->
+    <div class="drop" id="main-drop" onclick="triggerUpload('main-upload')">
+      <div class="drop-ic">📷</div>
+      <div class="drop-t">תמונה ראשית</div>
+      <div class="drop-s">לחץ/י לבחירת תמונה · JPG, PNG · עד 10MB</div>
+      <input type="file" id="main-upload" accept="image/*" style="display:none" onchange="previewPhoto(this,'main-drop')">
+    </div>
+
+    <!-- Additional photos -->
+    <div class="card" style="margin-top:14px;">
+      <div class="ct"><span class="ctd" style="background:var(--accent);"></span>תמונות נוספות (אופציונלי)</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div class="drop" style="padding:20px 10px;" onclick="triggerUpload('photo2')">
+          <div class="drop-ic" style="font-size:24px;">+</div>
+          <div class="drop-s">תמונה 2</div>
+          <input type="file" id="photo2" accept="image/*" style="display:none">
+        </div>
+        <div class="drop" style="padding:20px 10px;" onclick="triggerUpload('photo3')">
+          <div class="drop-ic" style="font-size:24px;">+</div>
+          <div class="drop-s">תמונה 3</div>
+          <input type="file" id="photo3" accept="image/*" style="display:none">
+        </div>
+        <div class="drop" style="padding:20px 10px;" onclick="triggerUpload('photo4')">
+          <div class="drop-ic" style="font-size:24px;">+</div>
+          <div class="drop-s">תמונה 4</div>
+          <input type="file" id="photo4" accept="image/*" style="display:none">
+        </div>
+      </div>
+    </div>
+
+    <div class="notice nb" style="margin-top:14px;">
+      תמונות לא יוצגו בגלישה הכללית — רק לשדכנים ולמשתמשים שאישרת/ה.
+    </div>
+
+  </div></div>
+
+  <div class="bot">
+    <span class="bot-hint">ניתן לדלג ולהוסיף מאוחר יותר</span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(2)">← חזור</button>
+      <button class="btn btn-p" onclick="go(4)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function initScreen3() {}
+
+function triggerUpload(id) {
+  document.getElementById(id).click();
+}
+
+function previewPhoto(input, dropId) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const drop = document.getElementById(dropId);
+    drop.style.backgroundImage = `url(${e.target.result})`;
+    drop.style.backgroundSize = 'cover';
+    drop.style.backgroundPosition = 'center';
+    drop.querySelector('.drop-ic').style.display = 'none';
+    drop.querySelector('.drop-t') && (drop.querySelector('.drop-t').style.display = 'none');
+    drop.querySelector('.drop-s').style.display = 'none';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+</script>

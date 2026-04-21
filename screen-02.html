@@ -1,0 +1,50 @@
+<div class="screen on" id="screen2">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">02 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:9%"></div></div>
+
+  <div class="pg" style="display:flex;align-items:center;">
+    <div class="pgc" style="width:100%;max-width:420px;margin:0 auto;text-align:center;">
+
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--abg);border:1px solid var(--abd);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;">✉️</div>
+
+      <div class="ph-t" style="margin-bottom:8px;">בדוק/י את תיבת הדואר</div>
+      <div class="ph-s" style="margin-bottom:12px;">שלחנו קוד בן 6 ספרות ל</div>
+
+      <div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;background:var(--surface);border:1px solid var(--line2);padding:6px 14px;border-radius:8px;font-size:13px;color:var(--accent);">
+        your@email.com
+      </div>
+
+      <div class="otp-row">
+        <input class="otp ok" maxlength="1" value="4">
+        <input class="otp ok" maxlength="1" value="8">
+        <input class="otp ok" maxlength="1" value="3">
+        <input class="otp ok" maxlength="1" value="7">
+        <input class="otp" maxlength="1" placeholder="·">
+        <input class="otp" maxlength="1" placeholder="·">
+      </div>
+
+      <button class="btn btn-p btn-f" onclick="go(4)">Verify &amp; המשך ←</button>
+      <button class="btn btn-g btn-f" onclick="go(1)">← שנה/י כתובת</button>
+      <div style="font-size:12px;color:var(--t3);">לא קיבלת? <a href="#" style="color:var(--accent);">שלח/י שוב</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function initScreen2() {
+  // Auto-focus first empty OTP input
+  const inputs = document.querySelectorAll('.otp');
+  inputs.forEach((inp, i) => {
+    inp.addEventListener('input', () => {
+      if (inp.value && inputs[i+1]) inputs[i+1].focus();
+    });
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !inp.value && inputs[i-1]) inputs[i-1].focus();
+    });
+  });
+}
+</script>

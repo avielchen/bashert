@@ -1,0 +1,155 @@
+<div class="screen on" id="screen1">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">01 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:4.5%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">Welcome</div>
+      <div class="ph-t">Let's get started</div>
+      <div class="ph-s">Bashert is a marriage-focused platform for the Jewish community. Every profile is reviewed before going live.</div>
+      <div style="margin-top:14px;padding:10px 14px;background:var(--bg3);border-radius:var(--r);text-align:center;font-size:13px;color:var(--t2);">
+        כבר יש לך חשבון? <a href="#" style="color:var(--accent);font-weight:600;">התחבר/י ←</a>
+      </div>
+    </div>
+
+    <!-- Step A: Who is registering? -->
+    <div class="card" id="reg-step-a">
+      <div class="ct" style="margin-bottom:14px;"><span class="ctd" style="background:var(--accent);"></span>ההרשמה היא עבור:</div>
+      <div class="gcards">
+        <div class="gcard mc" id="reg-self" onclick="pickRegType('self')">
+          <div class="gc-ck">✓</div>
+          <div class="gc-em">🙋</div>
+          <div class="gc-t">בשבילי</div>
+          <div class="gc-s">אני רווק/ה ומחפש/ת זיווג</div>
+        </div>
+        <div class="gcard wc" id="reg-other" onclick="pickRegType('other')">
+          <div class="gc-ck">✓</div>
+          <div class="gc-em">🤝</div>
+          <div class="gc-t">בשביל מישהו אחר</div>
+          <div class="gc-s">אני עוזר/ת למישהו ליצור פרופיל</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step B-self: Gender -->
+    <div class="card" id="reg-gender-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--accent);"></span>אני…</div>
+      <div class="gcards">
+        <div class="gcard mc" id="gc-man" onclick="selG('man')"><div class="gc-ck">✓</div><div class="gc-em">👨</div><div class="gc-t">גבר</div><div class="gc-s">מחפש אישה</div></div>
+        <div class="gcard wc" id="gc-woman" onclick="selG('woman')"><div class="gc-ck">✓</div><div class="gc-em">👩</div><div class="gc-t">אישה</div><div class="gc-s">מחפשת גבר</div></div>
+      </div>
+    </div>
+
+    <!-- Step B-other: Role -->
+    <div class="card" id="reg-role-card" style="display:none;">
+      <div class="ct" style="margin-bottom:14px;"><span class="ctd" style="background:var(--gold);"></span>מה הקשר שלך לרווק/ה?</div>
+      <div class="gcards">
+        <div class="gcard mc" id="role-matchmaker" onclick="pickRole('matchmaker')">
+          <div class="gc-ck">✓</div><div class="gc-em">💼</div>
+          <div class="gc-t">אני שדכן/ית</div>
+          <div class="gc-s">מקצועי/ת רשום/ה בבשערת</div>
+        </div>
+        <div class="gcard wc" id="role-family" onclick="pickRole('family')">
+          <div class="gc-ck">✓</div><div class="gc-em">👨‍👩‍👦</div>
+          <div class="gc-t">משפחה או חבר/ה</div>
+          <div class="gc-s">אני עוזר/ת למישהו שאני מכיר/ה</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step C1: Single's gender (for someone else) -->
+    <div class="card" id="reg-single-gender-card" style="display:none;">
+      <div class="ct" style="margin-bottom:14px;"><span class="ctd" style="background:var(--gold);"></span>הרווק/ה הוא/היא:</div>
+      <div class="gcards">
+        <div class="gcard mc" id="gc-single-man" onclick="selSingleG('man')"><div class="gc-ck">✓</div><div class="gc-em">👨</div><div class="gc-t">גבר</div><div class="gc-s">מחפש אישה</div></div>
+        <div class="gcard wc" id="gc-single-woman" onclick="selSingleG('woman')"><div class="gc-ck">✓</div><div class="gc-em">👩</div><div class="gc-t">אישה</div><div class="gc-s">מחפשת גבר</div></div>
+      </div>
+    </div>
+
+    <!-- Step C2: Single's details -->
+    <div class="card" id="reg-single-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--gold);"></span><span id="single-details-label">Their details</span></div>
+      <div class="notice nb" style="margin-bottom:12px;">ניצור איתם קשר לאימות החשבון ולמילוי הפרופיל.</div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">שם פרטי <em>*</em></label><input class="fi" id="inp-single-fname" placeholder="שם פרטי"></div>
+        <div class="fg"><label class="lbl">שם משפחה <em>*</em></label><input class="fi" placeholder="שם משפחה"></div>
+      </div>
+      <div class="fg"><label class="lbl">כתובת אימייל <em>*</em></label><input class="fi" type="email" placeholder="כתובת האימייל שלהם — לאימות"></div>
+      <div class="fg"><label class="lbl">טלפון (אופציונלי)</label><input class="fi" type="tel" placeholder="לתזכורת WhatsApp"></div>
+    </div>
+
+    <!-- Step D: Your name -->
+    <div class="card" id="reg-name-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--gold);"></span>השם שלך</div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">שם פרטי <em>*</em></label><input class="fi" placeholder="שם פרטי"></div>
+        <div class="fg"><label class="lbl">שם משפחה <em>*</em></label><input class="fi" placeholder="פרטי — לשדכן/ית בלבד"><div class="hint">רק השדכן/ית שלך רואה זאת.</div></div>
+      </div>
+      <div class="fg"><label class="lbl">שם תצוגה <em>*</em></label><input class="fi" placeholder="לדוגמה: דוד מ."><div class="hint">מוצג בכרטיס הפרופיל שלך — שם פרטי + ראשית משפחה הוא הסטנדרט.</div></div>
+    </div>
+
+    <!-- Step E: Login credentials -->
+    <div class="card" id="reg-login-card" style="display:none;">
+      <div class="ct"><span class="ctd" style="background:var(--rose);"></span>יצירת חשבון</div>
+      <div class="fg"><label class="lbl">כתובת האימייל שלי <em>*</em></label><input class="fi" type="email" placeholder="כתובת האימייל שלך"></div>
+      <div class="fg"><label class="lbl">הסיסמה שלי <em>*</em></label><input class="fi" type="password" placeholder="בחר/י סיסמה">
+        <div class="pw-bar"><div class="pw-seg on"></div><div class="pw-seg on"></div><div class="pw-seg on"></div><div class="pw-seg"></div><span class="pw-lbl">טוב</span></div>
+      </div>
+      <div class="fg"><label class="lbl">אימות סיסמה <em>*</em></label><input class="fi" type="password" placeholder="חזור/י על הסיסמה"></div>
+    </div>
+
+    <!-- Agreements + Continue -->
+    <div class="card" id="reg-agree-card" style="display:none;">
+      <label class="chk" onclick="tChk(this)"><div class="chkb on">✓</div><div class="chk-l">אני מסכים/ה ל<a href="#">תנאי השימוש</a> ול<a href="#">מדיניות הפרטיות</a>. אני מבין/ה שבשערת מיועדת לנישואין.</div></label>
+      <label class="chk" onclick="tChk(this)"><div class="chkb"></div><div class="chk-l" id="jewish-confirm-lbl">אני מאשר/ת שאני יהודי/ה או נמצא/ת בתהליך גיור מוכר.</div></label>
+      <button class="btn btn-p btn-f" style="margin-top:10px;" onclick="go(2)">המשך ←</button>
+    </div>
+
+  </div></div>
+</div>
+
+<script>
+function initScreen1() {
+  // Reset state
+  ['reg-gender-card','reg-role-card','reg-single-gender-card','reg-single-card','reg-name-card','reg-login-card','reg-agree-card']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+}
+
+function pickRegType(type) {
+  const self = document.getElementById('reg-self');
+  const other = document.getElementById('reg-other');
+  if (type === 'self') {
+    self.classList.add('sm'); other.classList.remove('sw');
+    show('reg-gender-card'); hide('reg-role-card'); hide('reg-single-gender-card'); hide('reg-single-card');
+  } else {
+    other.classList.add('sw'); self.classList.remove('sm');
+    show('reg-role-card'); hide('reg-gender-card'); hide('reg-name-card'); hide('reg-login-card'); hide('reg-agree-card');
+  }
+}
+
+function pickRole(role) {
+  document.getElementById('role-matchmaker').classList.toggle('sm', role==='matchmaker');
+  document.getElementById('role-family').classList.toggle('sw', role==='family');
+  show('reg-single-gender-card');
+}
+
+function selG(g) {
+  document.getElementById('gc-man').classList.toggle('sm', g==='man');
+  document.getElementById('gc-woman').classList.toggle('sw', g==='woman');
+  show('reg-name-card'); show('reg-login-card'); show('reg-agree-card');
+}
+
+function selSingleG(g) {
+  document.getElementById('gc-single-man').classList.toggle('sm', g==='man');
+  document.getElementById('gc-single-woman').classList.toggle('sw', g==='woman');
+  show('reg-single-card'); show('reg-login-card'); show('reg-agree-card');
+}
+
+function show(id) { const el=document.getElementById(id); if(el) el.style.display=''; }
+function hide(id) { const el=document.getElementById(id); if(el) el.style.display='none'; }
+</script>

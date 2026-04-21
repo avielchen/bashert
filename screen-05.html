@@ -1,0 +1,211 @@
+<div class="screen on" id="screen5">
+  <div class="tb">
+    <div class="logo">בשערת <span class="logo-he">Bashert</span></div>
+    <div class="tsp"></div>
+    <span class="sbadge">05 / 23</span>
+  </div>
+  <div class="pstrip"><div class="pfill" style="width:21.7%"></div></div>
+
+  <div class="pg"><div class="pgc">
+
+    <div class="ph">
+      <div class="ph-ey">העדפות — גיל</div>
+      <div class="ph-t">העדפות גיל</div>
+      <div class="ph-s">הגדר/י את הטווח ביחס לגילך — הטווחים מתעדכנים אוטומטית בכל יום הולדת.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="frow" style="align-items:center;gap:16px;margin:0;">
+        <div class="fg" style="margin:0;">
+          <label class="lbl">תאריך לידה <em>*</em></label>
+          <input class="fi" type="date" id="dob" style="width:190px;" oninput="onDobInput()">
+        </div>
+        <div style="background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;width:78px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,110,247,.35);flex-shrink:0;">
+          <div style="font-family:'Noto Serif Hebrew',serif;font-size:28px;font-weight:800;color:#fff;line-height:1;" id="ageDisp">34</div>
+          <div style="font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.65);">גיל</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUCKET 1 -->
+    <div class="ar ar1">
+      <div class="arh">
+        <div class="bn ar-bn-1"><span class="bn-num">1</span></div>
+        <div style="flex:1;">
+          <div class="bht" style="color:var(--b1);">דלי 1 — אידיאלי</div>
+        </div>
+      </div>
+      <div class="arb">
+        <div class="apick">
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים צעיר/ה יותר</div>
+            <div class="age-spinner">
+              <div class="vud"><button class="vub" onclick="aa('b1y',+1)">▲</button><button class="vub" onclick="aa('b1y',-1)">▼</button></div>
+              <div class="age-num-block"><div class="anum" id="b1y">0</div><div class="amin-age" id="b1y-age">age 34</div></div>
+            </div>
+          </div>
+          <div class="amid"><div class="ayouls">גילך</div><div class="ayou" id="ac1">34</div></div>
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים מבוגר/ת יותר</div>
+            <div class="age-spinner">
+              <div class="age-num-block"><div class="anum" id="b1o">2</div><div class="amin-age" id="b1o-age">age 36</div></div>
+              <div class="vud"><button class="vub" onclick="aa('b1o',+1)">▲</button><button class="vub" onclick="aa('b1o',-1)">▼</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="ares" id="b1r"><span class="ares-ages"></span><span class="ares-yrs"></span></div>
+      </div>
+    </div>
+
+    <!-- BUCKET 2 -->
+    <div class="ar ar2">
+      <div class="arh">
+        <div class="bn ar-bn-2"><span class="bn-num">2</span></div>
+        <div style="flex:1;"><div class="bht" style="color:var(--b2);">דלי 2 — מקובל</div></div>
+      </div>
+      <div class="arb">
+        <div class="apick">
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים צעיר/ה יותר</div>
+            <div class="age-spinner">
+              <div class="vud"><button class="vub" onclick="aa('b2y',+1)">▲</button><button class="vub" onclick="aa('b2y',-1)">▼</button></div>
+              <div class="age-num-block"><div class="anum" id="b2y">2</div><div class="amin-age" id="b2y-age">age 32</div></div>
+            </div>
+          </div>
+          <div class="amid"><div class="ayouls">גילך</div><div class="ayou" id="ac2">34</div></div>
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים מבוגר/ת יותר</div>
+            <div class="age-spinner">
+              <div class="age-num-block"><div class="anum" id="b2o">4</div><div class="amin-age" id="b2o-age">age 38</div></div>
+              <div class="vud"><button class="vub" onclick="aa('b2o',+1)">▲</button><button class="vub" onclick="aa('b2o',-1)">▼</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="ares" id="b2r"><span class="ares-ages">Ages 32–33 and 37–38</span><span class="ares-yrs">3–4 years younger · 3–4 years older</span></div>
+      </div>
+    </div>
+
+    <!-- BUCKET 3 -->
+    <div class="ar ar3">
+      <div class="arh">
+        <div class="bn ar-bn-3"><span class="bn-num">3</span></div>
+        <div style="flex:1;"><div class="bht" style="color:var(--b3);">דלי 3 — בסבירות</div></div>
+      </div>
+      <div class="arb">
+        <div class="apick">
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים צעיר/ה יותר</div>
+            <div class="age-spinner">
+              <div class="vud"><button class="vub" onclick="aa('b3y',+1)">▲</button><button class="vub" onclick="aa('b3y',-1)">▼</button></div>
+              <div class="age-num-block"><div class="anum" id="b3y">4</div><div class="amin-age" id="b3y-age">age 30</div></div>
+            </div>
+          </div>
+          <div class="amid"><div class="ayouls">גילך</div><div class="ayou" id="ac3">34</div></div>
+          <div class="age-ctrl">
+            <div class="age-ctrl-lbl">שנים מבוגר/ת יותר</div>
+            <div class="age-spinner">
+              <div class="age-num-block"><div class="anum" id="b3o">6</div><div class="amin-age" id="b3o-age">age 40</div></div>
+              <div class="vud"><button class="vub" onclick="aa('b3o',+1)">▲</button><button class="vub" onclick="aa('b3o',-1)">▼</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="ares" id="b3r"><span class="ares-ages">Ages 30–31 and 39–40</span><span class="ares-yrs">Absolute outer range</span></div>
+      </div>
+    </div>
+
+    <!-- BUCKET 4 -->
+    <div class="ar ar4">
+      <div class="arh">
+        <div class="bn ar-bn-4"><span class="bn-num">4</span></div>
+        <div style="flex:1;"><div class="bht" style="color:var(--b4);">דלי 4 — לא מוצג</div></div>
+      </div>
+      <div class="arb">
+        <div class="ares" id="b4r">
+          <span class="ares-ages">Ages 18–29 and ages 41–100</span>
+          <span class="ares-yrs">מחוץ לטווח הבסבירות — לא יוצג</span>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+
+  <div class="bot">
+    <span class="bot-hint">מתעדכן אוטומטית בכל יום הולדת</span>
+    <div class="bot-btns">
+      <button class="btn btn-g" onclick="go(4)">← חזור</button>
+      <button class="btn btn-p" onclick="go(6)">המשך ←</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Age state — local to screen 5
+let _age5 = { myAge: 34, b1y:0, b1o:2, b2y:2, b2o:4, b3y:4, b3o:6 };
+
+function initScreen5() {
+  updateAgeDisplays();
+}
+
+function onDobInput() {
+  const dob = document.getElementById('dob').value;
+  if (!dob) return;
+  const today = new Date();
+  const birth = new Date(dob);
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  _age5.myAge = Math.max(18, Math.min(120, age));
+  document.getElementById('ageDisp').textContent = _age5.myAge;
+  updateAgeDisplays();
+}
+
+function aa(field, delta) {
+  const minMap = { b1y:0, b1o:0, b2y:0, b2o:0, b3y:0, b3o:0 };
+  _age5[field] = Math.max(minMap[field]||0, _age5[field] + delta);
+  // Enforce cascade: b2 must be >= b1, b3 must be >= b2
+  if (field==='b1y' && _age5.b2y < _age5.b1y) _age5.b2y = _age5.b1y;
+  if (field==='b2y' && _age5.b3y < _age5.b2y) _age5.b3y = _age5.b2y;
+  if (field==='b1o' && _age5.b2o < _age5.b1o) _age5.b2o = _age5.b1o;
+  if (field==='b2o' && _age5.b3o < _age5.b2o) _age5.b3o = _age5.b2o;
+  if (field==='b2y' && _age5.b2y < _age5.b1y) _age5.b2y = _age5.b1y;
+  if (field==='b3y' && _age5.b3y < _age5.b2y) _age5.b3y = _age5.b2y;
+  if (field==='b2o' && _age5.b2o < _age5.b1o) _age5.b2o = _age5.b1o;
+  if (field==='b3o' && _age5.b3o < _age5.b2o) _age5.b3o = _age5.b2o;
+  updateAgeDisplays();
+}
+
+function updateAgeDisplays() {
+  const a = _age5.myAge;
+  ['ac1','ac2','ac3'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=a; });
+  const ageDisp = document.getElementById('ageDisp'); if(ageDisp) ageDisp.textContent=a;
+
+  ['b1y','b1o','b2y','b2o','b3y','b3o'].forEach(f => {
+    const el=document.getElementById(f); if(el) el.textContent=_age5[f];
+    const ael=document.getElementById(f+'-age');
+    if(ael) {
+      const adj = f.endsWith('y') ? -_age5[f] : _age5[f];
+      ael.textContent='age '+(a+adj);
+    }
+  });
+
+  // Result summaries
+  const b1MinAge = a - _age5.b1y, b1MaxAge = a + _age5.b1o;
+  setAres('b1r', `Ages ${b1MinAge}–${b1MaxAge}`, `${_age5.b1y} years younger · ${_age5.b1o} years older`);
+
+  const b2MinAge = a - _age5.b2y, b2MaxAge = a + _age5.b2o;
+  const b2YoungRange = `${b2MinAge}–${a-_age5.b1y-1}`;
+  const b2OldRange = `${a+_age5.b1o+1}–${b2MaxAge}`;
+  setAres('b2r', `Ages ${b2YoungRange} and ${b2OldRange}`, `${_age5.b2y-_age5.b1y}–${_age5.b2y} years younger · ${_age5.b2o-_age5.b1o}–${_age5.b2o} years older`);
+
+  const b3MinAge = a - _age5.b3y, b3MaxAge = a + _age5.b3o;
+  setAres('b3r', `Ages ${b3MinAge}–${a-_age5.b2y-1} and ${a+_age5.b2o+1}–${b3MaxAge}`, 'Absolute outer range');
+
+  setAres('b4r', `Ages 18–${b3MinAge-1} and ages ${b3MaxAge+1}+`, 'מחוץ לטווח הבסבירות — לא יוצג');
+}
+
+function setAres(id, ages, yrs) {
+  const el=document.getElementById(id); if(!el) return;
+  const a=el.querySelector('.ares-ages'), y=el.querySelector('.ares-yrs');
+  if(a) a.textContent=ages; if(y) y.textContent=yrs;
+}
+</script>
